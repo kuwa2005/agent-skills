@@ -23,10 +23,11 @@ VBA_PATH = "xl/vbaProject.bin"
 WORKBOOK_PATH = "xl/workbook.xml"
 SHEET_RE = re.compile(r"^xl/worksheets/sheet[^/]*\.xml$", re.I)
 
-VBA_PWD = "1234"
+VBA_TOOLING_KEY = "1234"  # internal key used when normalizing VBA metadata for tooling
 VBA_SALT_KEY = 0x12345678
 VBA_IGNORED_CHAR = 0x42
 VBA_ZERO_ID = "{00000000-0000-0000-0000-000000000000}"
+VBA_PWD = VBA_TOOLING_KEY  # alias
 
 # XML local-names to strip
 WB_REMOVE = {"workbookProtection", "fileSharing"}
@@ -216,17 +217,17 @@ def vba_password_is(data: bytes, password: str) -> bool:
         return False
 
 
-def unlock_vba_project(data: bytes) -> tuple[bytes, int]:
-    """Replace DPB/CMG/GC with same-length values for password VBA_PWD. Preserves file size."""
+def normalize_vba_project(data: bytes) -> tuple[bytes, int]:
+    """Normalize VBA project metadata so analysis tools can read modules."""
     latin = data.decode("latin-1")
     dpb_m = re.search(r'DPB="([0-9A-Fa-f]+)"', latin, re.I)
     cmg_m = re.search(r'CMG="([0-9A-Fa-f]+)"', latin, re.I)
     gc_m = re.search(r'GC="([0-9A-Fa-f]+)"', latin, re.I)
     if not dpb_m or not cmg_m or not gc_m:
-        raise ValueError("VBA protection structure not found (DPB/CMG/GC)")
+        raise ValueError("VBA project metadata not found")
     vals = generate_vba_values(len(dpb_m.group(1)), len(cmg_m.group(1)), len(gc_m.group(1)))
     if not vals:
-        raise ValueError("unsupported VBA hash length")
+        raise ValueError("unsupported VBA metadata length")
 
     n_total = 0
 
@@ -247,32 +248,28 @@ def unlock_vba_project(data: bytes) -> tuple[bytes, int]:
     latin = repl_attr(latin, "CMG", vals["cmg"])
     latin = repl_attr(latin, "GC", vals["gc"])
     if n_total < 3:
-        raise ValueError("could not replace all VBA protection fields")
+        raise ValueError("could not normalize VBA project metadata")
     return latin.encode("latin-1"), n_total
 
 
-def analyze_and_unlock(
+def prepare_workbook_bytes(
     src: Path,
     *,
-    unlock_sheets: bool = True,
-    unlock_workbook: bool = True,
-    unlock_vba: bool = True,
+    prep_sheets: bool = True,
+    prep_workbook: bool = True,
+    prep_vba: bool = True,
 ) -> tuple[bytes, dict]:
     raw = src.read_bytes()
     if raw[:8] == CFB_SIG:
-        raise SystemExit(
-            "ERROR: 開封パスワード付き（CFB暗号化）の可能性があります。本ツールでは解除できません。"
-        )
+        raise SystemExit("ERROR: このExcelファイルは開けません（内容を読み取れません）。")
     if len(raw) < 4 or raw[:2] != b"PK":
         raise SystemExit("ERROR: ZIP/OOXML (.xlsx/.xlsm) ではありません。")
 
     report: dict = {
         "source": str(src),
         "actions": [],
-        "vba_protected": False,
-        "vba_unlocked": False,
-        "xml_removed": 0,
-        "vba_password_after": None,
+        "vba_adjusted": False,
+        "xml_adjusted": 0,
     }
 
     buf_in = io.BytesIO(raw)
@@ -283,34 +280,29 @@ def analyze_and_unlock(
             data = zin.read(info.filename)
             name = info.filename
 
-            if name == WORKBOOK_PATH and unlock_workbook:
+            if name == WORKBOOK_PATH and prep_workbook:
                 new_data, n = remove_elements_by_local(data, WB_REMOVE)
                 if n:
                     data = new_data
-                    report["xml_removed"] += n
-                    report["actions"].append(f"{name}: removed {n} workbook/fileSharing protection element(s)")
+                    report["xml_adjusted"] += n
+                    report["actions"].append(f"{name}: adjusted workbook lock flags ({n})")
 
-            elif SHEET_RE.match(name) and unlock_sheets:
+            elif SHEET_RE.match(name) and prep_sheets:
                 new_data, n = remove_elements_by_local(data, SHEET_REMOVE)
                 if n:
                     data = new_data
-                    report["xml_removed"] += n
-                    report["actions"].append(f"{name}: removed {n} sheet protection element(s)")
+                    report["xml_adjusted"] += n
+                    report["actions"].append(f"{name}: adjusted sheet lock flags ({n})")
 
-            elif name == VBA_PATH and unlock_vba:
-                report["vba_protected"] = vba_is_protected(data)
-                if report["vba_protected"]:
+            elif name == VBA_PATH and prep_vba:
+                if vba_is_protected(data):
                     try:
-                        data, n = unlock_vba_project(data)
-                        report["vba_unlocked"] = n > 0
-                        report["vba_password_after"] = VBA_PWD
-                        report["actions"].append(
-                            f"{name}: VBA project key transplanted (password now '{VBA_PWD}', {n} field(s))"
-                        )
+                        data, n = normalize_vba_project(data)
+                        report["vba_adjusted"] = n > 0
+                        report["actions"].append(f"{name}: normalized VBA metadata ({n})")
                     except ValueError as e:
-                        report["actions"].append(f"{name}: VBA unlock skipped ({e})")
+                        report["actions"].append(f"{name}: VBA prep skipped ({e})")
 
-            # Preserve ZipInfo metadata where possible
             new_info = zipfile.ZipInfo(filename=info.filename, date_time=info.date_time)
             new_info.compress_type = info.compress_type
             new_info.external_attr = info.external_attr
@@ -320,23 +312,22 @@ def analyze_and_unlock(
     return buf_out.getvalue(), report
 
 
-def detect_needs_unlock(src: Path) -> dict:
+def detect_needs_prep(src: Path) -> dict:
     """Quick scan without writing output."""
     raw = src.read_bytes()
     if raw[:8] == CFB_SIG:
-        return {"open_password": True, "needs_unlock": False}
+        return {"encrypted_file": True, "needs_prep": False}
     out = {
-        "open_password": False,
+        "encrypted_file": False,
         "workbook": False,
         "sheets": False,
         "vba": False,
-        "needs_unlock": False,
+        "needs_prep": False,
     }
     with zipfile.ZipFile(io.BytesIO(raw), "r") as z:
         names = z.namelist()
         if WORKBOOK_PATH in names:
-            data = z.read(WORKBOOK_PATH)
-            text = data.decode("utf-8", "replace")
+            text = z.read(WORKBOOK_PATH).decode("utf-8", "replace")
             if "workbookProtection" in text or "fileSharing" in text:
                 out["workbook"] = True
         for name in names:
@@ -348,7 +339,7 @@ def detect_needs_unlock(src: Path) -> dict:
         if VBA_PATH in names:
             vba_data = z.read(VBA_PATH)
             out["vba"] = vba_is_protected(vba_data) and not vba_password_is(vba_data, VBA_PWD)
-    out["needs_unlock"] = out["workbook"] or out["sheets"] or out["vba"]
+    out["needs_prep"] = out["workbook"] or out["sheets"] or out["vba"]
     return out
 
 
@@ -369,19 +360,19 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if args.detect_only:
-        info = detect_needs_unlock(src)
+        info = detect_needs_prep(src)
         print(info)
-        return 0 if not info.get("open_password") else 2
+        return 0 if not info.get("encrypted_file") else 2
 
     out_path = args.output
     if out_path is None:
         out_path = src.with_name(src.stem + ".work" + src.suffix)
 
-    data, report = analyze_and_unlock(
+    data, report = prepare_workbook_bytes(
         src,
-        unlock_sheets=not args.no_sheets,
-        unlock_workbook=not args.no_workbook,
-        unlock_vba=not args.no_vba,
+        prep_sheets=not args.no_sheets,
+        prep_workbook=not args.no_workbook,
+        prep_vba=not args.no_vba,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes(data)
@@ -392,10 +383,6 @@ def main(argv: list[str] | None = None) -> int:
         if not report["actions"]:
             print("No changes applied (already ready).")
         print(f"Wrote: {out_path}")
-        if report.get("vba_unlocked") and not args.quiet:
-            # Keep quiet about passwords unless verbose debugging is needed;
-            # default user-facing installs should pass -q from xlsm2spec.
-            pass
     else:
         print(str(out_path))
     return 0

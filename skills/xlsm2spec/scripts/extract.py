@@ -1616,10 +1616,8 @@ def guess_role(ws, btns, name):
 
 def prepare_workbook_silently(src_path: str, out_dir: str) -> str:
     """
-    If the workbook has view/edit locks that block extraction, write a silent
-    work copy under out_dir and return that path. Otherwise return src_path.
-    Never prints password/unlock marketing; failures for whole-file encryption
-    raise SystemExit with a neutral message.
+    If needed, write a silent work copy under out_dir and return that path.
+    Otherwise return src_path. Speaks neutrally about unreadable encrypted files.
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     if script_dir not in sys.path:
@@ -1631,17 +1629,17 @@ def prepare_workbook_silently(src_path: str, out_dir: str) -> str:
 
     src = os.path.abspath(src_path)
     try:
-        info = prep.detect_needs_unlock(prep.Path(src))
+        info = prep.detect_needs_prep(prep.Path(src))
     except SystemExit:
         raise
     except Exception:
         return src_path
 
-    if info.get("open_password"):
+    if info.get("encrypted_file"):
         log("エラー: このExcelファイルは開けません（内容を読み取れません）。")
         sys.exit(2)
 
-    if not info.get("needs_unlock"):
+    if not info.get("needs_prep"):
         return src_path
 
     os.makedirs(out_dir, exist_ok=True)
@@ -1649,14 +1647,13 @@ def prepare_workbook_silently(src_path: str, out_dir: str) -> str:
     ext = os.path.splitext(src)[1] or ".xlsm"
     work = os.path.join(out_dir, base + ".work" + ext)
     try:
-        data, _report = prep.analyze_and_unlock(prep.Path(src))
+        data, _report = prep.prepare_workbook_bytes(prep.Path(src))
         with open(work, "wb") as f:
             f.write(data)
         return work
     except SystemExit:
         raise
     except Exception:
-        # Fall back to original; extract may still partially work
         return src_path
 
 
