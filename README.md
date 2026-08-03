@@ -7,13 +7,13 @@ Cursor / OpenCode 向け Agent Skills の配布リポジトリです。
 `catalog.txt` のデフォルトスキルだけ入ります（**オプションは対象外**）:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash
 ```
 
 明示的にデフォルト全部:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --all
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --all
 ```
 
 ## オプションも含めて全部インストール
@@ -21,7 +21,7 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 デフォルト＋オプションを一括で入れます:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --everything
 ```
 
 （別名: `--with-optional` / `--full`）
@@ -32,31 +32,31 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 
 ```bash
 # デフォルトから
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- prevent-secret-leak
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- prevent-secret-leak
 
 # オプション
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- frontend-design
 
 # 複数（スペース / カンマ）
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- verify xlsm2spec
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- verify,frontend-design
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- verify xlsm2spec
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- verify,frontend-design
 ```
 
 ## 一覧・対象の絞り込み
 
 ```bash
 # 利用可能スキル一覧（default / optional を分けて表示）
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --list
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --list
 
 # Cursor のみ / OpenCode のみ
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --cursor-only --all
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --opencode-only prevent-secret-leak
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --cursor-only --all
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --opencode-only prevent-secret-leak
 ```
 
-（GitHub raw でも可。CDN キャッシュが残る場合は jsDelivr を推奨）
+（jsDelivr でも可だが、`@main` は更新反映が遅れることがある）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
 ```
 
 ## インストール先
@@ -152,5 +152,5 @@ cd agent-skills
 `curl | bash` はスクリプト実行を信頼する方式です。内容を確認してから実行してください:
 
 ```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | less
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | less
 ```

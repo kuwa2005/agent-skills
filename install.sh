@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # agent-skills installer (v1.4.0)
 #
-# 全部一発 (default catalog only; optional skills excluded):
-#   curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
+# Prefer GitHub raw for install.sh (jsDelivr @main can lag after pushes)
+#   curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash
 #   curl -fsSL ... | bash -s -- --all
 #
 # オプションも含めて全部:
@@ -16,7 +16,8 @@ set -euo pipefail
 
 REPO="${AGENT_SKILLS_REPO:-kuwa2005/agent-skills}"
 REF="${AGENT_SKILLS_REF:-main}"
-RAW_BASE="https://cdn.jsdelivr.net/gh/${REPO}@${REF}"
+# Prefer GitHub raw for install.sh (jsDelivr @main can lag after pushes)
+RAW_BASE="https://raw.githubusercontent.com/${REPO}/${REF}"
 TARBALL_URL="https://codeload.github.com/${REPO}/tar.gz/${REF}"
 
 CURSOR_SKILLS_DIR="${CURSOR_SKILLS_DIR:-$HOME/.cursor/skills}"
@@ -124,7 +125,7 @@ while [[ $# -gt 0 ]]; do
     --ref)
       if [[ -z "${2:-}" ]]; then err "Error: --ref requires an argument"; exit 1; fi
       REF="$2"
-      RAW_BASE="https://cdn.jsdelivr.net/gh/${REPO}@${REF}"
+      RAW_BASE="https://raw.githubusercontent.com/${REPO}/${REF}"
       TARBALL_URL="https://codeload.github.com/${REPO}/tar.gz/${REF}"
       force_remote=true
       shift 2
