@@ -82,6 +82,9 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 | スキル | 概要 |
 |--------|------|
 | `frontend-design` | UI / ランディング等の視覚デザイン指針（表現モードと管理画面の convention モードを区別） |
+| `split-to-prs` | 大きな変更をレビューしやすい小さな PR に分割 |
+| `babysit` | PR をマージ可能状態まで維持（コメント整理・コンフリクト解消・CI 修正） |
+| `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
 
 `xlsm2spec` の抽出スクリプト依存（手動導入時）:
 
@@ -112,6 +115,9 @@ agent-skills/
     └── frontend-design/         # optional
         ├── SKILL.md
         └── LICENSE.txt
+    ├── split-to-prs/            # optional
+    ├── babysit/                 # optional
+    └── create-skill/            # optional
 ```
 
 ## ローカルから実行

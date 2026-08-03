@@ -3,3 +3,6 @@
 #   curl ... | bash -s -- --everything
 #   curl ... | bash -s -- frontend-design
 frontend-design
+split-to-prs
+babysit
+create-skill

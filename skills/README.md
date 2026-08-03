@@ -47,8 +47,22 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 ランディングや Web UI、ダッシュボードなど、見た目のある画面を作る・直すときのデザイン指針。  
 印象を残す表現と、管理画面など慣例に寄せる作り分けを行う。
 
+### [split-to-prs](./split-to-prs/) — PR 分割
+
+大きな変更を、レビューしやすい小さな PR に分割する。分割計画の承認前は commit / push / PR 作成を行わない。
+
+### [babysit](./babysit/) — PR 維持
+
+PR をマージ可能な状態まで維持する。コメント整理、コンフリクト解消、CI 修正をループで行う。
+
+### [create-skill](./create-skill/) — スキル作成
+
+新しい Agent Skill の作成手順と SKILL.md の書き方をガイドする。Cursor / OpenCode 両対応。
+
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- split-to-prs babysit create-skill
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
 ```
 
 ---
