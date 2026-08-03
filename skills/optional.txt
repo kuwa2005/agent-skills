@@ -1,4 +1,5 @@
 # Optional skills — NOT installed by --all / bare curl|bash
-# Install explicitly, e.g.:
+# Install with --everything, or explicitly, e.g.:
+#   curl ... | bash -s -- --everything
 #   curl ... | bash -s -- frontend-design
 frontend-design

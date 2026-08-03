@@ -16,6 +16,16 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --all
 ```
 
+## オプションも含めて全部インストール
+
+デフォルト＋オプションを一括で入れます:
+
+```bash
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
+```
+
+（別名: `--with-optional` / `--full`）
+
 ## 個別インストール
 
 デフォルト／オプションどちらも名前指定で入れられます:
@@ -58,7 +68,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 
 ## 収録スキル
 
-### デフォルト（`--all` 対象）
+### デフォルト（`--all` / 素の `curl|bash` 対象）
 
 | スキル | 概要 |
 |--------|------|
@@ -67,7 +77,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 | `xlsm2spec` | Excel マクロ資産から業務分析と要求仕様書を生成 |
 | `xlsm-prep` | 仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理 |
 
-### オプション（明示指定のみ）
+### オプション（名前指定、または `--everything`）
 
 | スキル | 概要 |
 |--------|------|
@@ -88,7 +98,7 @@ agent-skills/
 ├── LICENSE
 └── skills/
     ├── catalog.txt              # デフォルト（--all）
-    ├── optional.txt             # オプション（明示指定のみ）
+    ├── optional.txt             # オプション（明示指定 / --everything）
     ├── prevent-secret-leak/
     ├── verify/
     ├── xlsm2spec/
@@ -96,6 +106,8 @@ agent-skills/
     │       ├── extract.py
     │       └── prepare_workbook.py
     ├── xlsm-prep/
+    │   ├── SKILL.md
+    │   ├── docs/
     │   └── scripts/prepare.py
     └── frontend-design/         # optional
         ├── SKILL.md
@@ -109,6 +121,7 @@ git clone https://github.com/kuwa2005/agent-skills.git
 cd agent-skills
 ./install.sh --list
 ./install.sh --all
+./install.sh --everything
 ./install.sh frontend-design
 ./install.sh prevent-secret-leak verify
 ```

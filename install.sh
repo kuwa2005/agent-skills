@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# agent-skills installer (v1.3.0)
+# agent-skills installer (v1.4.0)
 #
 # 全部一発 (default catalog only; optional skills excluded):
 #   curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
 #   curl -fsSL ... | bash -s -- --all
+#
+# オプションも含めて全部:
+#   curl -fsSL ... | bash -s -- --everything
 #
 # 個別 (default or optional):
 #   curl -fsSL ... | bash -s -- prevent-secret-leak
@@ -30,6 +33,7 @@ list_only=false
 show_help=false
 force_remote=false
 install_all=false
+install_everything=false
 skills_requested=()
 
 SCRIPT_DIR=""
@@ -47,7 +51,7 @@ WORKDIR=""
 
 usage() {
   cat <<EOF
-agent-skills installer v1.3.0
+agent-skills installer v1.4.0
 
 Install Agent Skills for Cursor (~/.cursor/skills) and OpenCode (~/.config/opencode/skills).
 Copies each skill directory in full (SKILL.md + scripts/ and other assets).
@@ -56,6 +60,10 @@ Copies each skill directory in full (SKILL.md + scripts/ and other assets).
   curl -fsSL ${RAW_BASE}/install.sh | bash
   curl -fsSL ${RAW_BASE}/install.sh | bash -s -- --all
   ./install.sh --all
+
+オプションも含めて全部インストール:
+  curl -fsSL ${RAW_BASE}/install.sh | bash -s -- --everything
+  ./install.sh --everything
 
 個別インストール (default or optional skills):
   curl -fsSL ${RAW_BASE}/install.sh | bash -s -- prevent-secret-leak
@@ -67,6 +75,7 @@ Options:
   -h, --help           Show this help
   -l, --list           List default and optional skills, then exit
   -a, --all            Install all DEFAULT skills (not optional)
+  --everything         Install default + optional skills
   --cursor-only        Install to Cursor only
   --opencode-only      Install to OpenCode only
   --remote             Force download from GitHub (ignore local checkout)
@@ -75,7 +84,8 @@ Options:
 
 Notes:
   - No skill names / --all → install catalog.txt only
-  - Optional skills (optional.txt) require explicit names
+  - --everything → catalog.txt + optional.txt
+  - Optional skills alone still require explicit names (or --everything)
   - Skill names may be space- or comma-separated
 EOF
 }
@@ -107,6 +117,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help) show_help=true; shift ;;
     -l|--list) list_only=true; shift ;;
     -a|--all) install_all=true; shift ;;
+    --everything|--with-optional|--full) install_everything=true; shift ;;
     --cursor-only) install_opencode=false; shift ;;
     --opencode-only) install_cursor=false; shift ;;
     --remote) force_remote=true; shift ;;
@@ -276,7 +287,7 @@ if [[ "$list_only" == true ]]; then
   for s in "${default_skills[@]}"; do
     out "  - $s"
   done
-  out "Optional skills (explicit install only):"
+  out "Optional skills (explicit name, or included by --everything):"
   if [[ ${#optional_skills[@]} -eq 0 ]]; then
     out "  (none)"
   else
@@ -287,8 +298,18 @@ if [[ "$list_only" == true ]]; then
   exit 0
 fi
 
+if [[ "$install_everything" == true && "$install_all" == true ]]; then
+  info "--everything specified; --all is redundant"
+fi
+
 targets=()
-if [[ "$install_all" == true || ${#skills_requested[@]} -eq 0 ]]; then
+if [[ "$install_everything" == true ]]; then
+  if [[ ${#skills_requested[@]} -gt 0 ]]; then
+    info "--everything specified; ignoring individual skill names: ${skills_requested[*]}"
+  fi
+  mapfile -t targets < <(list_all_known_skills)
+  info "Mode: EVERYTHING (${#targets[@]} skills; default + optional)"
+elif [[ "$install_all" == true || ${#skills_requested[@]} -eq 0 ]]; then
   if [[ "$install_all" == true && ${#skills_requested[@]} -gt 0 ]]; then
     info "--all specified; ignoring individual skill names: ${skills_requested[*]}"
   fi
