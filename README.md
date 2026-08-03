@@ -18,13 +18,20 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 
 ## オプションも含めて全部インストール
 
-デフォルト＋オプションを一括で入れます:
+デフォルト 4 件 + オプション 4 件、**計 8 件**を一括で入れます:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --everything
 ```
 
 （別名: `--with-optional` / `--full`）
+
+| 区分 | スキル |
+|------|--------|
+| デフォルト | `prevent-secret-leak`, `verify`, `xlsm2spec`, `xlsm-prep` |
+| オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill` |
+
+インストール完了後、インストールしたスキル名が一覧表示されます。
 
 ## 個別インストール
 
@@ -34,10 +41,13 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 # デフォルトから
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- prevent-secret-leak
 
-# オプション
+# オプション（1 件）
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- frontend-design
 
-# 複数（スペース / カンマ）
+# オプション（複数）
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- split-to-prs babysit create-skill
+
+# デフォルト + オプション混在（スペース / カンマ）
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- verify xlsm2spec
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- verify,frontend-design
 ```

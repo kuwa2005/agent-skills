@@ -4,15 +4,20 @@ Cursor / OpenCode 向け Agent Skills です。各フォルダの `SKILL.md` が
 
 | 区分 | 入れ方 |
 |------|--------|
-| **デフォルト** | `curl \| bash` または `--all` |
-| **オプション** | スキル名を指定してインストール |
+| **デフォルト**（4 件） | `curl \| bash` または `--all` |
+| **オプション**（4 件） | スキル名を指定してインストール |
+| **全部**（計 8 件） | `--everything` |
 
 ```bash
-# デフォルト全部
+# デフォルト全部（4 件）
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
+
+# オプションも含めて全部（8 件）
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
 
 # オプション例
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- split-to-prs babysit create-skill
 ```
 
 ---
@@ -60,8 +65,11 @@ PR をマージ可能な状態まで維持する。コメント整理、コン�
 新しい Agent Skill の作成手順と SKILL.md の書き方をガイドする。Cursor / OpenCode 両対応。
 
 ```bash
+# オプション個別
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- split-to-prs babysit create-skill
+
+# デフォルト + オプション全部（計 8 件）
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
 ```
 

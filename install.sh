@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# agent-skills installer (v1.4.0)
+# agent-skills installer (v1.5.0)
 #
 # Prefer GitHub raw for install.sh (jsDelivr @main can lag after pushes)
 #   curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash
@@ -52,7 +52,7 @@ WORKDIR=""
 
 usage() {
   cat <<EOF
-agent-skills installer v1.4.0
+agent-skills installer v1.5.0
 
 Install Agent Skills for Cursor (~/.cursor/skills) and OpenCode (~/.config/opencode/skills).
 Copies each skill directory in full (SKILL.md + scripts/ and other assets).
@@ -366,6 +366,12 @@ done
 
 echo >&2
 ok "Done."
+if [[ ${#targets[@]} -gt 0 ]]; then
+  ok "Installed skills (${#targets[@]}):"
+  for name in "${targets[@]}"; do
+    ok "  - ${name}"
+  done
+fi
 info "Cursor skills dir:   ${CURSOR_SKILLS_DIR}"
 info "OpenCode skills dir: ${OPENCODE_SKILLS_DIR}"
 info "New agent sessions may be required to pick up skills."
