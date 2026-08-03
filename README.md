@@ -2,6 +2,22 @@
 
 Cursor / OpenCode 向け Agent Skills の配布リポジトリです。
 
+## スキル一覧
+
+| 区分 | スキル | 説明 |
+|------|--------|------|
+| デフォルト | `prevent-secret-leak` | git add/commit/push 前の秘密情報混入防止、および秘密ファイルの表示・外送防止 |
+| デフォルト | `verify` | 完了・修正済み・PR 作成前に、検証コマンドの実行結果（証拠）を必須とする |
+| デフォルト | `xlsm2spec` | Excel マクロ資産（`.xlsm` 等）から業務分析と要求仕様書を生成 |
+| デフォルト | `xlsm-prep` | 仕様化などの解析前に、Excel ブックを扱いやすい形へ整える内部向け前処理 |
+| オプション | `frontend-design` | UI / ランディング等の視覚デザイン指針（表現モードと管理画面の convention モードを区別） |
+| オプション | `split-to-prs` | 大きな変更をレビューしやすい小さな PR に分割 |
+| オプション | `babysit` | PR をマージ可能状態まで維持（コメント整理・コンフリクト解消・CI 修正） |
+| オプション | `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
+
+- **デフォルト**（4 件）: `curl | bash` または `--all` でインストール
+- **オプション**（4 件）: スキル名を指定するか `--everything` でインストール
+
 ## 全部一発インストール
 
 `catalog.txt` のデフォルトスキルだけ入ります（**オプションは対象外**）:
@@ -76,25 +92,7 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 | Cursor | `~/.cursor/skills/<skill-name>/` |
 | OpenCode | `~/.config/opencode/skills/<skill-name>/` |
 
-## 収録スキル
-
-### デフォルト（`--all` / 素の `curl|bash` 対象）
-
-| スキル | 概要 |
-|--------|------|
-| `prevent-secret-leak` | git add/commit/push 前の秘密情報混入防止、および秘密ファイルの表示・外送防止 |
-| `verify` | 完了・修正済み・PR 作成前に、検証コマンドの実行結果（証拠）を必須とする |
-| `xlsm2spec` | Excel マクロ資産から業務分析と要求仕様書を生成 |
-| `xlsm-prep` | 仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理 |
-
-### オプション（名前指定、または `--everything`）
-
-| スキル | 概要 |
-|--------|------|
-| `frontend-design` | UI / ランディング等の視覚デザイン指針（表現モードと管理画面の convention モードを区別） |
-| `split-to-prs` | 大きな変更をレビューしやすい小さな PR に分割 |
-| `babysit` | PR をマージ可能状態まで維持（コメント整理・コンフリクト解消・CI 修正） |
-| `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
+## 依存関係
 
 `xlsm2spec` の抽出スクリプト依存（手動導入時）:
 
