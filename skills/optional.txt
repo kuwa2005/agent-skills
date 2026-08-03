@@ -2,4 +2,3 @@
 # Install explicitly, e.g.:
 #   curl ... | bash -s -- frontend-design
 frontend-design
-xlsm-prep

@@ -34,6 +34,10 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 `.xlsm` / `.xlam` などのマクロ付き Excel を解析し、業務の流れと新システム向けの要求仕様書にまとめる。  
 ドキュメントや担当者がいないレガシー資産の仕様起こし向け。
 
+### [xlsm-prep](./xlsm-prep/) — Excel の前処理
+
+仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理。
+
 ---
 
 ## オプション（`optional.txt`）
@@ -45,14 +49,6 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 
 ```bash
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
-```
-
-### [xlsm-prep](./xlsm-prep/) — Excel の前処理
-
-仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理。
-
-```bash
-curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- xlsm-prep
 ```
 
 ---

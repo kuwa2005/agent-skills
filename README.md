@@ -65,6 +65,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 | `prevent-secret-leak` | git add/commit/push 前の秘密情報混入防止、および秘密ファイルの表示・外送防止 |
 | `verify` | 完了・修正済み・PR 作成前に、検証コマンドの実行結果（証拠）を必須とする |
 | `xlsm2spec` | Excel マクロ資産から業務分析と要求仕様書を生成 |
+| `xlsm-prep` | 仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理 |
 
 ### オプション（明示指定のみ）
 
@@ -94,11 +95,11 @@ agent-skills/
     │   └── scripts/
     │       ├── extract.py
     │       └── prepare_workbook.py
-    ├── frontend-design/         # optional
-    │   ├── SKILL.md
-    │   └── LICENSE.txt
-    └── xlsm-prep/               # optional（内部）
-        └── scripts/prepare.py
+    ├── xlsm-prep/
+    │   └── scripts/prepare.py
+    └── frontend-design/         # optional
+        ├── SKILL.md
+        └── LICENSE.txt
 ```
 
 ## ローカルから実行
