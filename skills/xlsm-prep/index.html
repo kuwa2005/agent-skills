@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XLSX / XLSM 保護解除 - ブラウザ内処理</title>
+<style>
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --border: #d9dee3;
+  --text: #1c2733;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px 48px; }
+header h1 { font-size: 1.5rem; }
+header .sub { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  background: #fafbfc;
+}
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--primary);
+  background: #eef4ff;
+}
+.dropzone svg { width: 44px; height: 44px; color: var(--muted); }
+.dz-title { font-weight: 600; margin-top: 12px; }
+.dz-sub { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+.dropzone.has-file { padding: 20px 24px; display: flex; align-items: center; gap: 16px; text-align: left; }
+.dropzone.has-file svg { width: 32px; height: 32px; flex: 0 0 auto; }
+.dropzone.has-file .dz-body { flex: 1; }
+.dropzone.has-file .dz-title { margin-top: 0; font-size: 1rem; word-break: break-all; }
+.status { margin-top: 16px; padding: 12px 16px; border-radius: 8px; font-size: .9rem; }
+.status.error { background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); }
+.status.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+.status.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
+.hidden { display: none !important; }
+.result-header { font-weight: 600; }
+.result-header .file { color: var(--muted); font-weight: 400; font-size: .85rem; }
+.group { margin-top: 18px; }
+.group-title { font-weight: 600; font-size: .9rem; margin-bottom: 8px; color: var(--muted); }
+.check-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.check-item:hover { border-color: var(--primary); background: #f8faff; }
+.check-item input { margin-top: 4px; width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+.check-item .ci-title { font-size: .92rem; font-weight: 500; }
+.check-item .ci-sub { font-size: .8rem; color: var(--muted); }
+.actions { display: flex; gap: 8px; margin-top: 16px; }
+button {
+  font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);
+  padding: 8px 14px; background: #fff; color: var(--text); font-size: .85rem;
+  transition: background .12s, border-color .12s;
+}
+button:hover { border-color: var(--primary); color: var(--primary); }
+button.primary {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+  width: 100%; padding: 13px; font-size: 1rem; font-weight: 600; margin-top: 18px;
+}
+button.primary:hover { background: var(--primary-dark); color: #fff; }
+button.primary:disabled { background: #cbd5e1; border-color: #cbd5e1; color: #f1f5f9; cursor: not-allowed; }
+button.ghost { margin-top: 12px; width: 100%; }
+.note { margin-top: 14px; padding: 10px 14px; border-radius: 8px; font-size: .85rem; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.note.danger { background: #fef2f2; border-color: #fecaca; color: var(--danger); }
+footer { margin-top: 32px; text-align: center; color: var(--muted); font-size: .78rem; }
+.spinner {
+  display: inline-block; width: 14px; height: 14px; border: 2px solid #fff;
+  border-top-color: transparent; border-radius: 50%;
+  animation: spin .7s linear infinite; vertical-align: -2px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>XLSX / XLSM 保護解除</h1>
+    <p class="sub">ファイルはお使いの端末内だけで処理されます。サーバーへ送信されることは一切ありません。</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="ファイルを選択">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <div class="dz-body">
+          <div class="dz-title">ファイルをドラッグ＆ドロップ</div>
+          <div class="dz-sub">またはクリックして選択（対応形式: .xlsx / .xlsm）</div>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.xlsm" hidden>
+      </div>
+
+      <div id="status" class="status hidden"></div>
+
+      <div id="result" class="hidden">
+        <div class="result-header">検出された保護</div>
+        <div id="checkboxes"></div>
+        <div class="actions">
+          <button id="selectAllBtn">すべて選択</button>
+          <button id="clearAllBtn">すべて解除</button>
+        </div>
+        <div id="note" class="note hidden"></div>
+        <button id="processBtn" class="primary" disabled>選択した保護を解除してダウンロード</button>
+        <button id="resetBtn" class="ghost">別のファイルを処理</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>すべての処理はブラウザ内で行われます。パスワードの復元・総当たりは行いません。</footer>
+</div>
+
+<script>
+'use strict';
+
+const hasDeflate = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
+const CFB_SIG = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const XLSM_MIME = 'application/vnd.ms-excel.sheet.macroenabled.12';
+const WORKBOOK_PATH = 'xl/workbook.xml';
+const RELS_PATH = 'xl/_rels/workbook.xml.rels';
+const VBA_PATH = 'xl/vbaProject.bin';
+const SHEET_RE = /^xl\/worksheets\/sheet[^/]*\.xml$/i;
+const VBA_ZERO_ID = '{00000000-0000-0000-0000-000000000000}';
+
+const $ = (s) => document.querySelector(s);
+const state = { result: null, selection: null };
+
+function setStatus(el) {
+  const box = $('#status');
+  box.className = 'status ' + el.className;
+  box.innerHTML = el.html;
+  box.classList.remove('hidden');
+}
+
+function parseXml(text) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length > 0) throw new Error('XML parse error');
+  return doc;
+}
+
+function elByLocal(doc, names) {
+  const set = new Set(names);
+  return Array.from(doc.getElementsByTagName('*')).filter((e) => set.has(e.localName));
+}
+
+function serializeXml(doc) {
+  return new TextEncoder().encode(new XMLSerializer().serializeToString(doc));
+}
+
+function bytesContains(bytes, needle, from = 0) {
+  outer: for (let i = from; i + needle.length <= bytes.length; i++) {
+    for (let j = 0; j < needle.length; j++) {
+      if (bytes[i + j] !== needle[j]) continue outer;
+    }
+    return i;
+  }
+  return -1;
+}
+
+function vbaProtectionInfo(data) {
+  const text = new TextDecoder('utf-8').decode(data);
+  const zeroId = text.indexOf(VBA_ZERO_ID) !== -1;
+  const dpbMatch = /DPB="([0-9a-fA-F]*)"/.exec(text);
+  const dpbSet = dpbMatch && dpbMatch[1] && dpbMatch[1].length > 0 && dpbMatch[1] !== '0';
+  return { protected: zeroId || dpbSet, hasDpb: !!dpbMatch };
+}
+
+function sha1(data) {
+  const len = data.length;
+  const ml = len * 8;
+  const paddedLen = Math.ceil((len + 9) / 64) * 64;
+  const m = new Uint8Array(paddedLen);
+  m.set(data);
+  m[len] = 0x80;
+  const dv = new DataView(m.buffer);
+  dv.setUint32(paddedLen - 8, Math.floor(ml / 0x100000000), false);
+  dv.setUint32(paddedLen - 4, ml >>> 0, false);
+
+  let h0 = 0x67452301, h1 = 0xefcdab89, h2 = 0x98badcfe, h3 = 0x10325476, h4 = 0xc3d2e1f0;
+  const w = new Uint32Array(80);
+  for (let off = 0; off < paddedLen; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4, false);
+    for (let i = 16; i < 80; i++) {
+      const x = w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16];
+      w[i] = (x << 1) | (x >>> 31);
+    }
+    let a = h0, b = h1, c = h2, d = h3, e = h4;
+    for (let i = 0; i < 80; i++) {
+      let f, k;
+      if (i < 20) { f = (b & c) | (~b & d); k = 0x5a827999; }
+      else if (i < 40) { f = b ^ c ^ d; k = 0x6ed9eba1; }
+      else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8f1bbcdc; }
+      else { f = b ^ c ^ d; k = 0xca62c1d6; }
+      const temp = (((a << 5) | (a >>> 27)) + f + e + k + w[i]) >>> 0;
+      e = d; d = c; c = (b << 30) | (b >>> 2); b = a; a = temp;
+    }
+    h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0; h4 = (h4 + e) >>> 0;
+  }
+  const out = new Uint8Array(20);
+  const outDv = new DataView(out.buffer);
+  outDv.setUint32(0, h0, false); outDv.setUint32(4, h1, false);
+  outDv.setUint32(8, h2, false); outDv.setUint32(12, h3, false); outDv.setUint32(16, h4, false);
+  return out;
+}
+
+function hexFromBytes(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, '0');
+  return s.toUpperCase();
+}
+
+function getNullBitmap(bytes) {
+  let mask = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] !== 0) mask |= 1 << (bytes.length - 1 - i);
+  }
+  return mask;
+}
+
+function encodeNulls(bytes) {
+  const out = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) out[i] = bytes[i] === 0 ? 1 : bytes[i];
+  return out;
+}
+
+function createHashStructure(pwdBytes, key) {
+  const sKey = new Uint8Array(4);
+  new DataView(sKey.buffer).setUint32(0, key >>> 0, true);
+  const hashInput = new Uint8Array(pwdBytes.length + 4);
+  hashInput.set(pwdBytes, 0);
+  hashInput.set(sKey, pwdBytes.length);
+  const hash = sha1(hashInput);
+  const combined = new Uint8Array(24);
+  combined.set(sKey, 0);
+  combined.set(hash, 4);
+  const grbits = getNullBitmap(combined);
+  const struc = new Uint8Array(29);
+  struc[0] = 0xff;
+  struc[1] = (grbits >> 16) & 0xff;
+  struc[2] = (grbits >> 8) & 0xff;
+  struc[3] = grbits & 0xff;
+  struc.set(encodeNulls(sKey), 4);
+  struc.set(encodeNulls(hash), 8);
+  struc[28] = 0x00;
+  return struc;
+}
+
+function encodeData(data, seed, ignoredChar) {
+  const out = [];
+  const versionEnc = seed ^ 2;
+  const projId = '{00000000-0000-0000-0000-000000000000}';
+  let projKey = 0;
+  for (let i = 0; i < projId.length; i++) projKey = (projKey + projId.charCodeAt(i)) & 0xff;
+  const projKeyEnc = projKey ^ seed;
+  out.push(seed, versionEnc, projKeyEnc);
+  let u1 = projKey, e1 = projKeyEnc, e2 = versionEnc;
+  const ignoredLen = (seed & 6) >> 1;
+  for (let i = 0; i < ignoredLen; i++) {
+    const b = (ignoredChar ^ (e2 + u1)) & 0xff;
+    out.push(b);
+    e2 = e1; e1 = b; u1 = ignoredChar;
+  }
+  const dl = data.length;
+  const dlBytes = [dl & 0xff, (dl >> 8) & 0xff, (dl >> 16) & 0xff, (dl >> 24) & 0xff];
+  for (let i = 0; i < 4; i++) {
+    const b = (dlBytes[i] ^ (e2 + u1)) & 0xff;
+    out.push(b);
+    e2 = e1; e1 = b; u1 = dlBytes[i];
+  }
+  for (let i = 0; i < data.length; i++) {
+    const b = (data[i] ^ (e2 + u1)) & 0xff;
+    out.push(b);
+    e2 = e1; e1 = b; u1 = data[i];
+  }
+  return new Uint8Array(out);
+}
+
+const VBA_PWD = '1234';
+const VBA_SALT_KEY = 0x12345678;
+const VBA_IGNORED_CHAR = 0x42;
+
+function seedForLength(len, base) {
+  const diff = len - base;
+  if (diff < 0 || diff > 6 || diff % 2 !== 0) return -1;
+  return (diff / 2) * 2;
+}
+
+function generateVbaValues(dpbLen, cmgLen, gcLen) {
+  const dpbSeed = seedForLength(dpbLen, 72);
+  const cmgSeed = seedForLength(cmgLen, 22);
+  const gcSeed = seedForLength(gcLen, 16);
+  if (dpbSeed < 0 || cmgSeed < 0 || gcSeed < 0) return null;
+  const pwdBytes = new Uint8Array(Array.from(VBA_PWD, (c) => c.charCodeAt(0)));
+  return {
+    dpb: hexFromBytes(encodeData(createHashStructure(pwdBytes, VBA_SALT_KEY), dpbSeed, VBA_IGNORED_CHAR)),
+    cmg: hexFromBytes(encodeData(new Uint8Array([0, 0, 0, 0]), cmgSeed, VBA_IGNORED_CHAR)),
+    gc: hexFromBytes(encodeData(new Uint8Array([0xff]), gcSeed, VBA_IGNORED_CHAR)),
+  };
+}
+
+function unlockVbaProject(data) {
+  const text = new TextDecoder('utf-8').decode(data);
+  const dpbM = /DPB="([0-9a-fA-F]+)"/i.exec(text);
+  const cmgM = /CMG="([0-9a-fA-F]+)"/i.exec(text);
+  const gcM = /GC="([0-9a-fA-F]+)"/i.exec(text);
+  if (!dpbM || !cmgM || !gcM) throw new Error('VBA protection structure not found');
+  const vals = generateVbaValues(dpbM[1].length, cmgM[1].length, gcM[1].length);
+  if (!vals) throw new Error('unsupported VBA hash length');
+  const replacements = [
+    ['DPB="' + dpbM[1] + '"', 'DPB="' + vals.dpb + '"'],
+    ['CMG="' + cmgM[1] + '"', 'CMG="' + vals.cmg + '"'],
+    ['GC="' + gcM[1] + '"', 'GC="' + vals.gc + '"'],
+  ];
+  const bytes = new Uint8Array(data);
+  let changed = 0;
+  for (const [from, to] of replacements) {
+    const fromBytes = new TextEncoder().encode(from);
+    const toBytes = new TextEncoder().encode(to);
+    let idx = 0;
+    while ((idx = bytesContains(bytes, fromBytes, idx)) !== -1) {
+      for (let j = 0; j < toBytes.length; j++) bytes[idx + j] = toBytes[j];
+      changed++;
+      idx += fromBytes.length;
+    }
+  }
+  return { data: bytes, changed };
+}
+
+let crcTable = null;
+function crc32(data) {
+  if (!crcTable) {
+    crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      crcTable[n] = c >>> 0;
+    }
+  }
+  let crc = 0xffffffff;
+  for (let i = 0; i < data.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ data[i]) & 0xff];
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(d) {
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  return { time, date };
+}
+
+function parseDosDate(dosT, dosD) {
+  return new Date(
+    1980 + ((dosD >> 9) & 0x7f),
+    ((dosD >> 5) & 0xf) - 1,
+    dosD & 0x1f,
+    (dosT >> 11) & 0x1f,
+    (dosT >> 5) & 0x3f,
+    (dosT & 0x1f) * 2
+  );
+}
+
+function findEOCD(view) {
+  const n = view.byteLength;
+  for (let i = n - 22; i >= Math.max(0, n - 22 - 65536); i--) {
+    if (view.getUint32(i, true) === 0x06054b50) {
+      const commentLen = view.getUint16(i + 20, true);
+      if (i + 22 + commentLen === n) return i;
+    }
+  }
+  for (let i = n - 22; i >= 0; i--) {
+    if (view.getUint32(i, true) === 0x06054b50) return i;
+  }
+  return -1;
+}
+
+function readCentral(view, eocdPos) {
+  let count = view.getUint16(eocdPos + 10, true);
+  let cdOffset = view.getUint32(eocdPos + 16, true);
+  if (count === 0xffff || cdOffset === 0xffffffff) {
+    const locator = eocdPos - 20;
+    if (locator >= 0 && view.getUint32(locator, true) === 0x07064b50) {
+      const z64 = Number(view.getBigUint64(locator + 8, true));
+      if (view.getUint32(z64, true) === 0x06064b50) {
+        count = Number(view.getBigUint64(z64 + 32, true));
+        cdOffset = Number(view.getBigUint64(z64 + 48, true));
+      }
+    }
+  }
+  const entries = [];
+  let p = cdOffset;
+  for (let i = 0; i < count; i++) {
+    if (view.getUint32(p, true) !== 0x02014b50) break;
+    const flags = view.getUint16(p + 8, true);
+    const method = view.getUint16(p + 10, true);
+    const dosT = view.getUint16(p + 12, true);
+    const dosD = view.getUint16(p + 14, true);
+    const crc = view.getUint32(p + 16, true);
+    let compSize = view.getUint32(p + 20, true);
+    let uncompSize = view.getUint32(p + 24, true);
+    const nameLen = view.getUint16(p + 28, true);
+    const extraLen = view.getUint16(p + 30, true);
+    const commentLen = view.getUint16(p + 32, true);
+    let localOffset = view.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(new Uint8Array(view.buffer, view.byteOffset + p + 46, nameLen));
+    if (uncompSize === 0xffffffff || compSize === 0xffffffff || localOffset === 0xffffffff) {
+      const extra = new DataView(view.buffer, view.byteOffset + p + 46 + nameLen, extraLen);
+      let q = 0;
+      while (q + 4 <= extraLen) {
+        const id = extra.getUint16(q, true);
+        const sz = extra.getUint16(q + 2, true);
+        if (id === 0x0001) {
+          let r = q + 4;
+          if (uncompSize === 0xffffffff) { uncompSize = Number(extra.getBigUint64(r, true)); r += 8; }
+          if (compSize === 0xffffffff) { compSize = Number(extra.getBigUint64(r, true)); r += 8; }
+          if (localOffset === 0xffffffff) { localOffset = Number(extra.getBigUint64(r, true)); }
+        }
+        q += 4 + sz;
+      }
+    }
+    const entry = {
+      name,
+      flags,
+      method,
+      crc,
+      compSize,
+      uncompSize,
+      localOffset,
+      date: parseDosDate(dosT, dosD),
+      directory: /\/$/.test(name),
+    };
+    entry.getData = makeGetter(view, entry);
+    entries.push(entry);
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return entries;
+}
+
+function makeGetter(view, entry) {
+  let cached = null;
+  return async function getData() {
+    if (cached) return cached;
+    const local = entry.localOffset;
+    if (view.getUint32(local, true) !== 0x04034b50) throw new Error('invalid local header');
+    const nameLen = view.getUint16(local + 26, true);
+    const extraLen = view.getUint16(local + 28, true);
+    const start = local + 30 + nameLen + extraLen;
+    const comp = new Uint8Array(view.buffer, view.byteOffset + start, entry.compSize);
+    let data;
+    if (entry.method === 0) {
+      data = new Uint8Array(comp);
+    } else if (entry.method === 8 && hasDeflate) {
+      const stream = new Blob([comp]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      data = new Uint8Array(await new Response(stream).arrayBuffer());
+    } else {
+      throw new Error('unsupported compression method: ' + entry.method);
+    }
+    if (crc32(data) !== entry.crc) throw new Error('CRC32 mismatch');
+    cached = data;
+    return data;
+  };
+}
+
+class ZipWriter {
+  constructor() {
+    this.parts = [];
+    this.central = [];
+    this.offset = 0;
+  }
+
+  async add(name, data, date, forceStore) {
+    const nameBytes = new TextEncoder().encode(name);
+    const crc = crc32(data);
+    let comp = data;
+    let method = 0;
+    if (!forceStore && hasDeflate && data.length > 0) {
+      const stream = new Blob([data]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+      const out = new Uint8Array(await new Response(stream).arrayBuffer());
+      if (out.length < data.length) {
+        comp = out;
+        method = 8;
+      }
+    }
+    const dt = dosDateTime(date || new Date());
+    const flags = 0x0800;
+    const nameLen = nameBytes.length;
+    const localLen = 30 + nameLen + comp.length;
+    const local = new Uint8Array(localLen);
+    const dv = new DataView(local.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, flags, true);
+    dv.setUint16(8, method, true);
+    dv.setUint16(10, dt.time, true);
+    dv.setUint16(12, dt.date, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, comp.length, true);
+    dv.setUint32(22, data.length, true);
+    dv.setUint16(26, nameLen, true);
+    dv.setUint16(28, 0, true);
+    local.set(nameBytes, 30);
+    local.set(comp, 30 + nameLen);
+    this.parts.push(local);
+    const localOffset = this.offset;
+    this.offset += local.length;
+    this.central.push({ nameBytes, crc, method, dosT: dt.time, dosD: dt.date, compLen: comp.length, uncompLen: data.length, localOffset });
+  }
+
+  finish(mime) {
+    const cdParts = [];
+    let cdSize = 0;
+    for (const e of this.central) {
+      const nameLen = e.nameBytes.length;
+      const b = new Uint8Array(46 + nameLen);
+      const dv = new DataView(b.buffer);
+      dv.setUint32(0, 0x02014b50, true);
+      dv.setUint16(4, 20, true);
+      dv.setUint16(6, 20, true);
+      dv.setUint16(8, 0x0800, true);
+      dv.setUint16(10, e.method, true);
+      dv.setUint16(12, e.dosT, true);
+      dv.setUint16(14, e.dosD, true);
+      dv.setUint32(16, e.crc, true);
+      dv.setUint32(20, e.compLen, true);
+      dv.setUint32(24, e.uncompLen, true);
+      dv.setUint16(28, nameLen, true);
+      dv.setUint16(30, 0, true);
+      dv.setUint16(32, 0, true);
+      dv.setUint16(34, 0, true);
+      dv.setUint16(36, 0, true);
+      dv.setUint32(38, 0, true);
+      dv.setUint32(42, e.localOffset, true);
+      b.set(e.nameBytes, 46);
+      cdParts.push(b);
+      cdSize += b.length;
+    }
+    const cdOffset = this.offset;
+    const eocd = new Uint8Array(22);
+    const dv = new DataView(eocd.buffer);
+    dv.setUint32(0, 0x06054b50, true);
+    dv.setUint16(4, 0, true);
+    dv.setUint16(6, 0, true);
+    dv.setUint16(8, this.central.length, true);
+    dv.setUint16(10, this.central.length, true);
+    dv.setUint32(12, cdSize, true);
+    dv.setUint32(16, cdOffset, true);
+    dv.setUint16(20, 0, true);
+    return new Blob([...this.parts, ...cdParts, eocd], { type: mime });
+  }
+}
+
+function resolvePath(baseFile, target) {
+  if (target.startsWith('/')) return target.slice(1);
+  const segments = [...baseFile.split('/').slice(0, -1), ...target.split('/')];
+  const out = [];
+  for (const seg of segments) {
+    if (!seg || seg === '.') continue;
+    if (seg === '..') out.pop();
+    else out.push(seg);
+  }
+  return out.join('/');
+}
+
+async function analyze(file) {
+  const buffer = await file.arrayBuffer();
+  const view = new DataView(buffer);
+  const head = new Uint8Array(buffer, 0, 8);
+  const isCfb = CFB_SIG.every((b, i) => head[i] === b);
+  if (isCfb) return { error: 'open', fileName: file.name };
+  if (buffer.byteLength < 4) return { error: 'invalid', fileName: file.name };
+  const start = new DataView(buffer, 0, 4).getUint32(0, true);
+  if (start !== 0x04034b50 && start !== 0x05054b50) return { error: 'invalid', fileName: file.name };
+  const eocdPos = findEOCD(view);
+  if (eocdPos < 0) return { error: 'invalid', fileName: file.name };
+
+  let entries;
+  try {
+    entries = readCentral(view, eocdPos);
+  } catch (e) {
+    return { error: 'invalid', fileName: file.name };
+  }
+  if (entries.length === 0) return { error: 'invalid', fileName: file.name };
+  if (entries.some((e) => e.flags & 0x1)) return { error: 'open', fileName: file.name };
+
+  const result = {
+    fileName: file.name,
+    isXlsm: /\.xlsm$/i.test(file.name),
+    entries,
+    workbookProtection: false,
+    fileSharing: false,
+    sheets: [],
+    hasVba: false,
+    vbaProtected: false,
+    error: null,
+  };
+
+  const vbaEntry = entries.find((e) => !e.directory && e.name === VBA_PATH);
+  result.hasVba = !!vbaEntry;
+  if (vbaEntry) {
+    try {
+      result.vbaProtected = vbaProtectionInfo(await vbaEntry.getData()).protected;
+    } catch (e) {
+      result.vbaProtected = false;
+    }
+  }
+
+  try {
+    const wbEntry = entries.find((e) => e.name === WORKBOOK_PATH);
+    if (!wbEntry || wbEntry.directory) return { error: 'invalid', fileName: file.name };
+    const wbDoc = parseXml(new TextDecoder().decode(await wbEntry.getData()));
+    const wbNames = new Set(elByLocal(wbDoc, ['workbookProtection', 'fileSharing']).map((e) => e.localName));
+    result.workbookProtection = wbNames.has('workbookProtection');
+    result.fileSharing = wbNames.has('fileSharing');
+
+    const rels = {};
+    const relsEntry = entries.find((e) => e.name === RELS_PATH);
+    if (relsEntry && !relsEntry.directory) {
+      const relDoc = parseXml(new TextDecoder().decode(await relsEntry.getData()));
+      for (const r of elByLocal(relDoc, ['Relationship'])) {
+        const id = r.getAttribute('Id');
+        const target = r.getAttribute('Target');
+        if (id && target && r.getAttribute('TargetMode') !== 'External') {
+          rels[id] = resolvePath(WORKBOOK_PATH, target);
+        }
+      }
+    }
+
+    const sheetEls = elByLocal(wbDoc, ['sheet']);
+    const sheetPaths = entries.filter((e) => !e.directory && SHEET_RE.test(e.name)).map((e) => e.name);
+    for (let i = 0; i < sheetEls.length; i++) {
+      const s = sheetEls[i];
+      const name = s.getAttribute('name') || 'シート' + (i + 1);
+      const rid = s.getAttribute('r:id') || s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || '';
+      const path = rels[rid] || sheetPaths[i];
+      const sheet = { name, path, sheetProtection: false, protectedRanges: false };
+      if (path) {
+        const entry = entries.find((e) => e.name === path);
+        if (entry && !entry.directory) {
+          const doc = parseXml(new TextDecoder().decode(await entry.getData()));
+          const names = new Set(elByLocal(doc, ['sheetProtection', 'protectedRange', 'protectedRanges']).map((e) => e.localName));
+          sheet.sheetProtection = names.has('sheetProtection');
+          sheet.protectedRanges = names.has('protectedRange') || names.has('protectedRanges');
+        }
+      }
+      result.sheets.push(sheet);
+    }
+  } catch (e) {
+    return { error: 'invalid', fileName: file.name };
+  }
+  return result;
+}
+
+function renderResult(result) {
+  state.result = result;
+  const container = $('#checkboxes');
+  container.innerHTML = '';
+  state.selection = {
+    workbookProtection: result.workbookProtection,
+    fileSharing: result.fileSharing,
+    vba: result.vbaProtected,
+    sheets: result.sheets.map((s) => ({ sheetProtection: s.sheetProtection, protectedRanges: s.protectedRanges })),
+  };
+
+  const note = $('#note');
+  note.classList.add('hidden');
+  note.className = 'note hidden';
+  const notes = [];
+  if (result.vbaProtected) {
+    notes.push('VBAプロジェクト保護は「キー移植」方式で解除します（暗号化ハッシュを既知パスワードの有効な値へ置換）。解除後のパスワードは ' + VBA_PWD + ' です。Excelで開くと「プロジェクトはロックされています」と出ますが、' + VBA_PWD + ' で開け、VBAProjectのプロパティ→保護タブで「プロジェクトの表示のロック」を外して保存すると完全に解除されます。');
+  } else if (result.hasVba) {
+    notes.push('VBAプロジェクト（vbaProject.bin）が含まれています。パスワード保護は検出されませんでした。');
+  }
+  if (notes.length > 0) {
+    note.textContent = notes.join('\n');
+    note.classList.remove('hidden');
+  }
+
+  const addGroup = (title, items) => {
+    const g = document.createElement('div');
+    g.className = 'group';
+    const h = document.createElement('div');
+    h.className = 'group-title';
+    h.textContent = title;
+    g.appendChild(h);
+    items.forEach((it) => g.appendChild(it.el));
+    container.appendChild(g);
+  };
+
+  const addCheck = (label, sub, onChange, checked) => {
+    const labelEl = document.createElement('label');
+    labelEl.className = 'check-item';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = !!checked;
+    input.addEventListener('change', () => onChange(input.checked));
+    const body = document.createElement('div');
+    const t = document.createElement('div');
+    t.className = 'ci-title';
+    t.textContent = label;
+    body.appendChild(t);
+    if (sub) {
+      const s = document.createElement('div');
+      s.className = 'ci-sub';
+      s.textContent = sub;
+      body.appendChild(s);
+    }
+    labelEl.appendChild(input);
+    labelEl.appendChild(body);
+    return { el: labelEl, input };
+  };
+
+  const wbItems = [];
+  if (result.workbookProtection) {
+    wbItems.push(addCheck('ブック構造保護', 'シートの追加・移動・削除を制限（workbookProtection）',
+      (v) => { state.selection.workbookProtection = v; }, true));
+  }
+  if (result.fileSharing) {
+    wbItems.push(addCheck('共有ブック保護', 'ワークスペース保護（fileSharing）',
+      (v) => { state.selection.fileSharing = v; }, true));
+  }
+  if (wbItems.length > 0) addGroup('ブック全体（xl/workbook.xml）', wbItems);
+
+  const vbaItems = [];
+  if (result.vbaProtected) {
+    vbaItems.push(addCheck('VBAプロジェクト保護',
+      'マクロコードの閲覧ロック（vbaProject.bin の DPB/CMG/GC を既知パスワードの有効な値へ置換）',
+      (v) => { state.selection.vba = v; }, true));
+  }
+  if (vbaItems.length > 0) addGroup('VBAマクロ（xl/vbaProject.bin）', vbaItems);
+
+  const sheetItems = [];
+  result.sheets.forEach((sheet, i) => {
+    if (!sheet.sheetProtection && !sheet.protectedRanges) return;
+    if (sheet.sheetProtection) {
+      sheetItems.push(addCheck('シート「' + sheet.name + '」の編集保護',
+        '編集・選択のロック（sheetProtection）',
+        (v) => { state.selection.sheets[i].sheetProtection = v; }, true));
+    }
+    if (sheet.protectedRanges) {
+      sheetItems.push(addCheck('シート「' + sheet.name + '」のセル範囲保護',
+        '指定セル範囲の編集ロック（protectedRange）',
+        (v) => { state.selection.sheets[i].protectedRanges = v; }, true));
+    }
+  });
+  if (sheetItems.length > 0) addGroup('シート（xl/worksheets/*.xml）', sheetItems);
+
+  const total = countSelected();
+  $('#processBtn').disabled = total === 0;
+  $('#processBtn').textContent = total === 0
+    ? '解除できる保護がありません'
+    : '選択した保護（' + total + ' 項目）を解除してダウンロード';
+
+  const resultBox = $('#result');
+  resultBox.classList.remove('hidden');
+  const header = resultBox.querySelector('.result-header');
+  header.innerHTML = '検出された保護 <span class="file">— ' + escapeHtml(result.fileName) + '</span>';
+
+  if (total === 0) {
+    setStatus({ className: 'info', html: '保護は見つかりませんでした。ダウンロードは行いません。' });
+  } else {
+    $('#status').classList.add('hidden');
+  }
+}
+
+function countSelected() {
+  if (!state.selection) return 0;
+  let n = 0;
+  if (state.selection.workbookProtection) n++;
+  if (state.selection.fileSharing) n++;
+  if (state.selection.vba) n++;
+  for (const s of state.selection.sheets) {
+    if (s.sheetProtection) n++;
+    if (s.protectedRanges) n++;
+  }
+  return n;
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function processFile() {
+  const result = state.result;
+  if (!result || result.entries.some((e) => e.flags & 0x1)) return;
+
+  const sel = state.selection;
+  const removalMap = new Map();
+  if (sel.workbookProtection || sel.fileSharing) {
+    removalMap.set(WORKBOOK_PATH, new Set());
+    if (sel.workbookProtection) removalMap.get(WORKBOOK_PATH).add('workbookProtection');
+    if (sel.fileSharing) removalMap.get(WORKBOOK_PATH).add('fileSharing');
+  }
+  result.sheets.forEach((sheet, i) => {
+    if (sel.sheets[i] && (sel.sheets[i].sheetProtection || sel.sheets[i].protectedRanges) && sheet.path) {
+      const set = removalMap.get(sheet.path) || new Set();
+      if (sel.sheets[i].sheetProtection) set.add('sheetProtection');
+      if (sel.sheets[i].protectedRanges) { set.add('protectedRange'); set.add('protectedRanges'); }
+      removalMap.set(sheet.path, set);
+    }
+  });
+
+  const btn = $('#processBtn');
+  btn.disabled = true;
+  setStatus({ className: 'info', html: '<span class="spinner"></span> 処理中です…' });
+
+  const writer = new ZipWriter();
+  const mime = result.isXlsm ? XLSM_MIME : XLSX_MIME;
+  const summary = [];
+  let removedCount = 0;
+
+  try {
+    for (let i = 0; i < result.entries.length; i++) {
+      const entry = result.entries[i];
+      if (entry.directory) {
+        await writer.add(entry.name, new Uint8Array(0), entry.date, true);
+      } else {
+        let data = await entry.getData();
+        if (entry.name === VBA_PATH && sel.vba) {
+          try {
+            const r = unlockVbaProject(data);
+            if (r.changed > 0) {
+              data = r.data;
+              summary.push(entry.name);
+            }
+          } catch (e) {
+            summary.push(entry.name + ' (VBA解除失敗: ' + e.message + ')');
+          }
+        }
+        const targets = removalMap.get(entry.name);
+        if (targets && targets.size > 0) {
+          const doc = parseXml(new TextDecoder().decode(data));
+          let removed = 0;
+          for (const el of elByLocal(doc, Array.from(targets))) {
+            el.parentNode && el.parentNode.removeChild(el);
+            removed++;
+          }
+          if (removed > 0) {
+            data = serializeXml(doc);
+            removedCount += removed;
+            summary.push(entry.name);
+          }
+        }
+        await writer.add(entry.name, data, entry.date);
+      }
+      if (i % 2 === 0) {
+        setStatus({ className: 'info', html: '<span class="spinner"></span> 処理中です… (' + (i + 1) + '/' + result.entries.length + ')' });
+      }
+    }
+
+    const blob = await writer.finish(mime);
+    const ext = result.isXlsm ? 'xlsm' : 'xlsx';
+    const outName = result.fileName.replace(/\.(xlsx|xlsm)$/i, '') + '-unlocked.' + ext;
+
+    const names = new Map();
+    result.sheets.forEach((s, i) => {
+      const t = removalMap.get(s.path);
+      if (t) {
+        const parts = [];
+        if (sel.sheets[i].sheetProtection) parts.push('編集保護');
+        if (sel.sheets[i].protectedRanges) parts.push('セル範囲保護');
+        if (parts.length) names.set(s.path, 'シート「' + s.name + '」' + parts.join('・'));
+      }
+    });
+    if (sel.workbookProtection) names.set(WORKBOOK_PATH, 'ブック構造保護');
+    if (sel.fileSharing) names.set(WORKBOOK_PATH, (names.get(WORKBOOK_PATH) ? names.get(WORKBOOK_PATH) + '・' : '') + '共有ブック保護');
+    if (sel.vba && summary.includes(VBA_PATH)) names.set(VBA_PATH, 'VBAプロジェクト保護');
+
+    setStatus({
+      className: 'success',
+      html: '解除が完了しました。ダウンロードを開始します。<br><small>' + escapeHtml(Array.from(names.values()).join(' / ')) + '</small>',
+    });
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = outName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+
+    btn.textContent = '解除完了: ' + removedCount + ' 個の保護要素を削除しました';
+  } catch (e) {
+    setStatus({ className: 'error', html: '処理中にエラーが発生しました: ' + escapeHtml(e.message) });
+    btn.disabled = countSelected() === 0;
+  }
+}
+
+function reset() {
+  state.result = null;
+  state.selection = null;
+  $('#fileInput').value = '';
+  $('#result').classList.add('hidden');
+  $('#status').classList.add('hidden');
+  renderDropzoneDefault();
+}
+
+function renderDropzoneDefault() {
+  const dz = $('#dropzone');
+  dz.classList.remove('has-file');
+  dz.querySelector('.dz-title').textContent = 'ファイルをドラッグ＆ドロップ';
+  dz.querySelector('.dz-sub').textContent = 'またはクリックして選択（対応形式: .xlsx / .xlsm）';
+}
+
+function renderDropzoneFile(name) {
+  const dz = $('#dropzone');
+  dz.classList.add('has-file');
+  dz.querySelector('.dz-title').textContent = name;
+  dz.querySelector('.dz-sub').textContent = 'クリックで別のファイルを選択';
+}
+
+async function handleFile(file) {
+  if (!/\.(xlsx|xlsm)$/i.test(file.name)) {
+    setStatus({ className: 'error', html: '対応していないファイル形式です: <b>' + escapeHtml(file.name) + '</b><br>対応形式は .xlsx / .xlsm です。' });
+    return;
+  }
+  renderDropzoneFile(file.name);
+  $('#result').classList.add('hidden');
+  setStatus({ className: 'info', html: '<span class="spinner"></span> ファイルを解析中です…' });
+  try {
+    const result = await analyze(file);
+    if (result.error === 'open') {
+      setStatus({ className: 'error', html: 'このファイルは開封パスワード（暗号化）付き、または .xls 形式です。<br>開封パスワードの解除には対応していません。<br><b>.xls の場合</b>: Excel で開き「名前を付けて保存」で <b>.xlsm</b> を選んで保存し、その .xlsm を再度アップロードしてください。' });
+      return;
+    }
+    if (result.error === 'invalid') {
+      setStatus({ className: 'error', html: '有効な XLSX / XLSM ファイルとして解析できませんでした。' });
+      return;
+    }
+    renderResult(result);
+  } catch (e) {
+    setStatus({ className: 'error', html: '解析中にエラーが発生しました: ' + escapeHtml(e.message) });
+  }
+}
+
+const dz = $('#dropzone');
+const fileInput = $('#fileInput');
+
+dz.addEventListener('click', () => fileInput.click());
+dz.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
+['dragenter', 'dragover'].forEach((ev) => {
+  dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+});
+['dragleave', 'drop'].forEach((ev) => {
+  dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('dragover'); });
+});
+dz.addEventListener('drop', (e) => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+$('#processBtn').addEventListener('click', processFile);
+$('#resetBtn').addEventListener('click', reset);
+
+$('#selectAllBtn').addEventListener('click', () => {
+  if (!state.selection) return;
+  const sel = state.selection;
+  sel.workbookProtection = state.result.workbookProtection;
+  sel.fileSharing = state.result.fileSharing;
+  sel.vba = state.result.vbaProtected;
+  sel.sheets.forEach((s, i) => {
+    s.sheetProtection = state.result.sheets[i].sheetProtection;
+    s.protectedRanges = state.result.sheets[i].protectedRanges;
+  });
+  document.querySelectorAll('#checkboxes input[type=checkbox]').forEach((c) => { c.checked = true; });
+  syncProcessButton();
+});
+
+$('#clearAllBtn').addEventListener('click', () => {
+  if (!state.selection) return;
+  state.selection.workbookProtection = false;
+  state.selection.fileSharing = false;
+  state.selection.vba = false;
+  state.selection.sheets.forEach((s) => { s.sheetProtection = false; s.protectedRanges = false; });
+  document.querySelectorAll('#checkboxes input[type=checkbox]').forEach((c) => { c.checked = false; });
+  syncProcessButton();
+});
+
+function syncProcessButton() {
+  const total = countSelected();
+  $('#processBtn').disabled = total === 0;
+  $('#processBtn').textContent = total === 0
+    ? '解除できる保護がありません'
+    : '選択した保護（' + total + ' 項目）を解除してダウンロード';
+}
+</script>
+</body>
+</html>
