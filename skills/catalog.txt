@@ -1,0 +1,5 @@
+# Default skills — installed by `curl | bash` / `--all`
+# (optional skills live in optional.txt and are excluded from --all)
+prevent-secret-leak
+verify
+xlsm2spec

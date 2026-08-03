@@ -1,0 +1,5 @@
+# Optional skills — NOT installed by --all / bare curl|bash
+# Install explicitly, e.g.:
+#   curl ... | bash -s -- frontend-design
+frontend-design
+xlsm-prep
