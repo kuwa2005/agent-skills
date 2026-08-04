@@ -35,29 +35,29 @@ sudo が使えないため、RPM をダウンロードしてユーザー領域�
 ### 2-1. 必要な RPM をダウンロード
 
 ```bash
-mkdir -p ~/tmp/rpms
+mkdir -p ~/.rpm
 dnf download \
   nspr nss nss-util nss-softokn nss-softokn-freebl \
   atk at-spi2-atk at-spi2-core \
   alsa-lib libdrm mesa-libgbm \
   libwayland-client libwayland-server \
-  --nogpgcheck --destdir=~/tmp/rpms
+  --nogpgcheck --destdir=~/.rpm
 ```
 
 ### 2-2. RPM を展開
 
 ```bash
-mkdir -p ~/tmp/rpms/extract
-cd ~/tmp/rpms
+mkdir -p ~/.rpm/extract
+cd ~/.rpm
 for f in *.x86_64.rpm; do
-  rpm2cpio "$f" | (cd ~/tmp/rpms/extract && cpio -idm 2>/dev/null)
+  rpm2cpio "$f" | (cd ~/.rpm/extract && cpio -idm 2>/dev/null)
 done
 ```
 
 展開先の共有ライブラリパス:
 
 ```
-~/tmp/rpms/extract/usr/lib64/
+~/.rpm/extract/usr/lib64/
 ```
 
 ---
@@ -89,7 +89,7 @@ const { chromium } = await import(
 ### 3-2. LD_LIBRARY_PATH をシェルから渡す（推奨）
 
 ```bash
-LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node capture.mjs
+LD_LIBRARY_PATH=~/.rpm/extract/usr/lib64 node capture.mjs
 ```
 
 ### 3-3. ブラウザ起動オプション
@@ -112,7 +112,7 @@ const browser = await chromium.launch({
 ## 4. 完全なスクリプト例
 
 ```javascript
-process.env.LD_LIBRARY_PATH = '/virtual/pcm/tmp/rpms/extract/usr/lib64';
+process.env.LD_LIBRARY_PATH = '/virtual/pcm/.rpm/extract/usr/lib64';
 const { chromium } = await import('/virtual/pcm/.nvm/versions/node/v24.18.0/lib/node_modules/playwright/index.mjs');
 
 const browser = await chromium.launch({
@@ -130,7 +130,7 @@ await browser.close();
 実行:
 
 ```bash
-LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node capture.mjs
+LD_LIBRARY_PATH=~/.rpm/extract/usr/lib64 node capture.mjs
 ```
 
 ---
@@ -139,17 +139,16 @@ LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node capture.mjs
 
 ```
 ~/
-├── tmp/
-│   ├── rpms/                    # ダウンロードした RPM
-│   │   ├── *.rpm
-│   │   └── extract/
-│   │       └── usr/lib64/       # 展開された共有ライブラリ
-│   ├── opencode/                # スクリプト等
-│   └── nssdb/                   # NSS データベース（必要に応じて）
-├── .cache/ms-playwright/        # Playwright の Chromium バイナリ
+├── .rpm/                         # RPM ダウンロード先
+│   ├── *.rpm
+│   └── extract/
+│       └── usr/lib64/            # 展開された共有ライブラリ
+├── .cache/ms-playwright/         # Playwright の Chromium バイナリ
 │   ├── chromium-{ver}/
 │   └── chromium_headless_shell-{ver}/
-└── .nvm/versions/node/          # Node.js
+├── .nvm/versions/node/           # Node.js
+└── tmp/                          # 一時ファイル（消してOK）
+    └── opencode/                 # スクリプト等
 ```
 
 ---
@@ -161,7 +160,7 @@ LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node capture.mjs
 | `libnspr4.so => not found` | NSS/NSPR 未インストール | `dnf download nspr` で取得 |
 | `libsoftokn3.so: cannot open` | nss-softokn 未インストール | `dnf download nss-softokn` で取得 |
 | `libatspi.so.0 => not found` | AT-SPI2 未インストール | `dnf download at-spi2-core` で取得 |
-| `NSS error code: -8023` | NSS DB 未初期化 | `certutil -d sql:~/tmp/nssdb -N --empty-password` |
+| `NSS error code: -8023` | NSS DB 未初期化 | `certutil -d sql:~/.rpm/nssdb -N --empty-password` |
 | `Target page, context or browser has been closed` | LD_LIBRARY_PATH 未設定 | シェルから `LD_LIBRARY_PATH=...` を渡す |
 | `SEC_ERROR_PKCS11_DEVICE_ERROR` | libfreebl3 不足 | `dnf download nss-softokn-freebl` で取得 |
 
@@ -200,22 +199,22 @@ npx playwright install chromium
 
 ```bash
 # 既存の RPM を削除
-rm -rf ~/tmp/rpms
+rm -rf ~/.rpm
 
 # 再ダウンロード
-mkdir -p ~/tmp/rpms
+mkdir -p ~/.rpm
 dnf download \
   nspr nss nss-util nss-softokn nss-softokn-freebl \
   atk at-spi2-atk at-spi2-core \
   alsa-lib libdrm mesa-libgbm \
   libwayland-client libwayland-server \
-  --nogpgcheck --destdir=~/tmp/rpms
+  --nogpgcheck --destdir=~/.rpm
 
 # 再展開
-mkdir -p ~/tmp/rpms/extract
-cd ~/tmp/rpms
+mkdir -p ~/.rpm/extract
+cd ~/.rpm
 for f in *.x86_64.rpm; do
-  rpm2cpio "$f" | (cd ~/tmp/rpms/extract && cpio -idm 2>/dev/null)
+  rpm2cpio "$f" | (cd ~/.rpm/extract && cpio -idm 2>/dev/null)
 done
 ```
 
@@ -233,7 +232,7 @@ npx playwright install chromium
 
 ```bash
 # 全ての関連ファイルを削除
-rm -rf ~/tmp/rpms
+rm -rf ~/.rpm
 rm -rf ~/.cache/ms-playwright
 npm uninstall -g playwright
 
@@ -242,18 +241,18 @@ npm install -g playwright
 npx playwright install chromium
 
 # RPM の再ダウンロードと展開
-mkdir -p ~/tmp/rpms
+mkdir -p ~/.rpm
 dnf download \
   nspr nss nss-util nss-softokn nss-softokn-freebl \
   atk at-spi2-atk at-spi2-core \
   alsa-lib libdrm mesa-libgbm \
   libwayland-client libwayland-server \
-  --nogpgcheck --destdir=~/tmp/rpms
+  --nogpgcheck --destdir=~/.rpm
 
-mkdir -p ~/tmp/rpms/extract
-cd ~/tmp/rpms
+mkdir -p ~/.rpm/extract
+cd ~/.rpm
 for f in *.x86_64.rpm; do
-  rpm2cpio "$f" | (cd ~/tmp/rpms/extract && cpio -idm 2>/dev/null)
+  rpm2cpio "$f" | (cd ~/.rpm/extract && cpio -idm 2>/dev/null)
 done
 ```
 
@@ -261,8 +260,8 @@ done
 
 ```bash
 # 簡単なテストスクリプト
-cat > /tmp/test-playwright.mjs << 'EOF'
-process.env.LD_LIBRARY_PATH = '/virtual/pcm/tmp/rpms/extract/usr/lib64';
+cat > ~/tmp/test-playwright.mjs << 'EOF'
+process.env.LD_LIBRARY_PATH = '/virtual/pcm/.rpm/extract/usr/lib64';
 const { chromium } = await import('/virtual/pcm/.nvm/versions/node/v24.18.0/lib/node_modules/playwright/index.mjs');
 
 const browser = await chromium.launch({
@@ -272,13 +271,13 @@ const browser = await chromium.launch({
 
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 await page.goto('https://example.com', { waitUntil: 'networkidle', timeout: 15000 });
-await page.screenshot({ path: '/tmp/test-screenshot.png', fullPage: false });
+await page.screenshot({ path: '~/tmp/test-screenshot.png', fullPage: false });
 
 await browser.close();
-console.log('スクリーンショットを保存しました: /tmp/test-screenshot.png');
+console.log('スクリーンショットを保存しました: ~/tmp/test-screenshot.png');
 EOF
 
-LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node /tmp/test-playwright.mjs
+LD_LIBRARY_PATH=~/.rpm/extract/usr/lib64 node ~/tmp/test-playwright.mjs
 ```
 
 ---
@@ -287,6 +286,7 @@ LD_LIBRARY_PATH=~/tmp/rpms/extract/usr/lib64 node /tmp/test-playwright.mjs
 
 - `LD_LIBRARY_PATH` は **ESM import の前**に設定するか、シェルから渡す
 - Chromium ヘッドレスシェル（`chromium_headless_shell`）はフルChrome より依存が少なく、推奨
-- `/tmp` にインストールファイルを残さず、必ず `~/tmp` 配下に配置する
+- RPM ライブラリは `~/.rpm/` に配置（`~/tmp/` は消してOKな一時ファイルのみ）
+- `/tmp` にはファイルを置かず、必ず `~/tmp/` を使用する
 - RPM のダウンロードには `--nogpgcheck` が必要（署名検証が失敗するため）
 - トラブルシューティング時は `ldd` で不足ライブラリを確認する
