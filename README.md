@@ -14,6 +14,7 @@ Cursor / OpenCode 向け Agent Skills の配布リポジトリです。
 | オプション | `split-to-prs` | 大きな変更をレビューしやすい小さな PR に分割 |
 | オプション | `babysit` | PR をマージ可能状態まで維持（コメント整理・コンフリクト解消・CI 修正） |
 | オプション | `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
+| オプション | `playwright-coreserver` | CoreServer で Playwright + Chromium を動かす手順（sudo 不要） |
 
 - **デフォルト**（4 件）: `curl | bash` または `--all` でインストール
 - **オプション**（4 件）: スキル名を指定するか `--everything` でインストール
@@ -45,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 | 区分 | スキル |
 |------|--------|
 | デフォルト | `prevent-secret-leak`, `verify`, `xlsm2spec`, `xlsm-prep` |
-| オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill` |
+| オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill`, `playwright-coreserver` |
 
 インストール完了後、インストールしたスキル名が一覧表示されます。
 
@@ -125,7 +126,8 @@ agent-skills/
         └── LICENSE.txt
     ├── split-to-prs/            # optional
     ├── babysit/                 # optional
-    └── create-skill/            # optional
+    ├── create-skill/            # optional
+    └── playwright-coreserver/   # optional
 ```
 
 ## ローカルから実行
