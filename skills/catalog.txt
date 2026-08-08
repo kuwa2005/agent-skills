@@ -4,3 +4,4 @@ prevent-secret-leak
 verify
 xlsm2spec
 xlsm-prep
+access2spec

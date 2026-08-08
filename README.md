@@ -10,14 +10,15 @@ Cursor / OpenCode 向け Agent Skills の配布リポジトリです。
 | デフォルト | `verify` | 完了・修正済み・PR 作成前に、検証コマンドの実行結果（証拠）を必須とする |
 | デフォルト | `xlsm2spec` | Excel マクロ資産（`.xlsm` 等）から業務分析と要求仕様書を生成 |
 | デフォルト | `xlsm-prep` | 仕様化などの解析前に、Excel ブックを扱いやすい形へ整える内部向け前処理 |
+| デフォルト | `access2spec` | MS Access 資産（`.mdb/.mde/.accdb`）から設計書13種 + index.md を生成（XLSM は xlsm2spec と連携） |
 | オプション | `frontend-design` | UI / ランディング等の視覚デザイン指針（表現モードと管理画面の convention モードを区別） |
 | オプション | `split-to-prs` | 大きな変更をレビューしやすい小さな PR に分割 |
 | オプション | `babysit` | PR をマージ可能状態まで維持（コメント整理・コンフリクト解消・CI 修正） |
 | オプション | `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
 | オプション | `playwright-coreserver` | CoreServer で Playwright + Chromium を動かす手順（sudo 不要） |
 
-- **デフォルト**（4 件）: `curl | bash` または `--all` でインストール
-- **オプション**（4 件）: スキル名を指定するか `--everything` でインストール
+- **デフォルト**（5 件）: `curl | bash` または `--all` でインストール
+- **オプション**（5 件）: スキル名を指定するか `--everything` でインストール
 
 ## 全部一発インストール
 
@@ -35,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 
 ## オプションも含めて全部インストール
 
-デフォルト 4 件 + オプション 4 件、**計 8 件**を一括で入れます:
+デフォルト 5 件 + オプション 5 件、**計 10 件**を一括で入れます:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --everything
@@ -45,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 
 | 区分 | スキル |
 |------|--------|
-| デフォルト | `prevent-secret-leak`, `verify`, `xlsm2spec`, `xlsm-prep` |
+| デフォルト | `prevent-secret-leak`, `verify`, `xlsm2spec`, `xlsm-prep`, `access2spec` |
 | オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill`, `playwright-coreserver` |
 
 インストール完了後、インストールしたスキル名が一覧表示されます。

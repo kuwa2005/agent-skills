@@ -1,6 +1,6 @@
 ---
 name: xlsm2spec
-description: Excelマクロ資産(.xlsm/.xlam)を解析し、VBA・シート構造・数式・フォーム・DB参照から業務分析と新システムの要求仕様書を生成する。旧Excel資産・ドキュメント無し・担当者不在のツールの仕様化に使用する。トリガー: xlsm、Excelマクロ、VBA解析、仕様書作成、仕様化、業務分析、要件定義、レガシーExcel資産、Access連携ツールの再構築。Use ONLY when analyzing .xlsm/.xlam Excel files to derive business processes and requirements for a reimplementation.
+description: "Excelマクロ資産(.xlsm/.xlam)を解析し、VBA・シート構造・数式・フォーム・DB参照から業務分析と新システムの要求仕様書を生成する。旧Excel資産・ドキュメント無し・担当者不在のツールの仕様化に使用する。トリガー: xlsm、Excelマクロ、VBA解析、仕様書作成、仕様化、業務分析、要件定義、レガシーExcel資産、Access連携ツールの再構築。Use ONLY when analyzing .xlsm/.xlam Excel files to derive business processes and requirements for a reimplementation."
 ---
 
 # xlsm2spec — Excelマクロ資産の業務分析と要求仕様化
