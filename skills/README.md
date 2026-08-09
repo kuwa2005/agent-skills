@@ -4,19 +4,20 @@ Cursor / OpenCode 向け Agent Skills です。各フォルダの `SKILL.md` が
 
 | 区分 | 入れ方 |
 |------|--------|
-| **デフォルト**（4 件） | `curl \| bash` または `--all` |
-| **オプション**（4 件） | スキル名を指定してインストール |
-| **全部**（計 8 件） | `--everything` |
+| **デフォルト**（5 件） | `curl \| bash` または `--all` |
+| **オプション**（6 件） | スキル名を指定してインストール |
+| **全部**（計 11 件） | `--everything` |
 
 ```bash
-# デフォルト全部（4 件）
+# デフォルト全部（5 件）
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash
 
-# オプションも含めて全部（8 件）
+# オプションも含めて全部（11 件）
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
 
 # オプション例
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- wsl-windows-gui
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- split-to-prs babysit create-skill
 ```
 
@@ -43,6 +44,10 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 
 仕様化などの解析に入る前に、Excel ブックを扱いやすい形へ整える内部向け前処理。
 
+### [access2spec](./access2spec/) — Access 資産の仕様化
+
+MS Access（`.mdb/.mde/.accdb`）を静的解析し、設計書13種を Markdown で生成する。XLSM は xlsm2spec と連携。
+
 ---
 
 ## オプション（`optional.txt`）
@@ -64,12 +69,21 @@ PR をマージ可能な状態まで維持する。コメント整理、コン�
 
 新しい Agent Skill の作成手順と SKILL.md の書き方をガイドする。Cursor / OpenCode 両対応。
 
+### [playwright-coreserver](./playwright-coreserver/) — CoreServer 向け Playwright
+
+CoreServer（AlmaLinux 8.10）で sudo なしに Playwright + Chromium を動かす手順。
+
+### [wsl-windows-gui](./wsl-windows-gui/) — WSL から Windows GUI 操作
+
+WSL を司令塔にし、Windows 側の pywinauto / PowerShell / AutoHotkey でデスクトップアプリを操作する。
+
 ```bash
 # オプション個別
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- frontend-design
+curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- wsl-windows-gui
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- split-to-prs babysit create-skill
 
-# デフォルト + オプション全部（計 8 件）
+# デフォルト + オプション全部（計 11 件）
 curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | bash -s -- --everything
 ```
 
