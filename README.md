@@ -76,9 +76,10 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 # 利用可能スキル一覧（default / optional を分けて表示）
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --list
 
-# Cursor のみ / OpenCode のみ
+# Cursor のみ / OpenCode のみ / oimo のみ
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --cursor-only --all
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --opencode-only prevent-secret-leak
+curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --oimo-only --everything
 ```
 
 （jsDelivr でも可だが、`@main` は更新反映が遅れることがある）
@@ -93,6 +94,9 @@ curl -fsSL https://cdn.jsdelivr.net/gh/kuwa2005/agent-skills@main/install.sh | b
 |------|------|
 | Cursor | `~/.cursor/skills/<skill-name>/` |
 | OpenCode | `~/.config/opencode/skills/<skill-name>/` |
+| oimo ([Open Mimo Code](https://github.com/kuwa2005/OpenMimoCode)) | `~/.config/oimo/skills/<skill-name>/` |
+
+**oimo** は OpenCode / Mimo Code 系をベースにした独自改造版（OpenMimoCode）。グローバル設定配下の `skills/` を読み込みます（プロジェクトは `.oimo/skills/`）。
 
 ## 依存関係
 
@@ -151,6 +155,7 @@ cd agent-skills
 | `AGENT_SKILLS_REF` | branch/tag/commit | `main` |
 | `CURSOR_SKILLS_DIR` | Cursor インストール先 | `~/.cursor/skills` |
 | `OPENCODE_SKILLS_DIR` | OpenCode インストール先 | `~/.config/opencode/skills` |
+| `OIMO_SKILLS_DIR` | oimo (Open Mimo Code) インストール先 | `~/.config/oimo/skills` |
 
 ## スキルの追加
 

@@ -1,8 +1,8 @@
 ---
 name: create-skill
 description: >-
-  Create Agent Skills for Cursor or OpenCode. Use when authoring a new skill or
-  asking about SKILL.md structure.
+  Create Agent Skills for Cursor, OpenCode, or oimo (Open Mimo Code). Use when
+  authoring a new skill or asking about SKILL.md structure.
 ---
 # Creating Agent Skills
 
@@ -59,10 +59,12 @@ skill-name/
 
 ### Storage Locations
 
-| Type | Cursor | OpenCode | Scope |
-|------|--------|----------|-------|
-| Personal | `~/.cursor/skills/skill-name/` | `~/.config/opencode/skills/skill-name/` | All projects |
-| Project | `.cursor/skills/skill-name/` | `.opencode/skills/skill-name/` | Shared with the repository |
+| Type | Cursor | OpenCode | oimo (Open Mimo Code) | Scope |
+|------|--------|----------|------------------------|-------|
+| Personal | `~/.cursor/skills/skill-name/` | `~/.config/opencode/skills/skill-name/` | `~/.config/oimo/skills/skill-name/` | All projects |
+| Project | `.cursor/skills/skill-name/` | `.opencode/skills/skill-name/` | `.oimo/skills/skill-name/` | Shared with the repository |
+
+oimo ([OpenMimoCode](https://github.com/kuwa2005/OpenMimoCode)) is a customized fork in the OpenCode / Mimo Code family. Prefer `~/.config/oimo/skills/` for personal installs so oimo discovers them via its config directory scan.
 
 **IMPORTANT**: Never create skills in `~/.cursor/skills-cursor/`. This directory is reserved for Cursor's internal built-in skills and is managed automatically by the system.
 
@@ -171,11 +173,37 @@ use a library. There are many libraries available for PDF processing, but we
 recommend pdfplumber because it's easy to use and handles most cases well...
 ```
 
-### 2. Keep SKILL.md Under 500 Lines
+### 2. Pin Specificity with Bad / Good Examples (必殺)
+
+「もっと具体的に」は解釈余地が大きく、抽象で正しそうな答えになりがち。**具体性の下限を実例で縛る。**
+
+説明・要約・報告・設計書を書かせるスキルには必ず:
+
+1. **到達点** — 読了後に何ができているべきか
+2. **悪い例** — この抽象度は不十分、という実文
+3. **良い例** — 同じ題材で、ここまで書けという実文
+
+```markdown
+悪い例: 「Member テーブルはメンバー情報を管理します」
+良い例: 「Member は組織所属ユーザー1人。role で MANAGER/USER。
+MANAGER は招待・削除可。ログインは Cognito ユーザー名と Member.email 照合。」
+```
+
+### 3. Mandate Diagrams for Flows / Relations / Branches
+
+処理フロー・状態遷移・依存関係は **mermaid / ASCII 必須**。文章のみ不可。  
+「文章でも図でもよい」は禁止（文章に逃げやすい）。
+
+```markdown
+## 図必須
+業務フロー・状態遷移・ER は mermaid または ASCII を必ず含める。
+```
+
+### 4. Keep SKILL.md Under 500 Lines
 
 For optimal performance, the main SKILL.md file should be concise. Use progressive disclosure for detailed content.
 
-### 3. Progressive Disclosure
+### 5. Progressive Disclosure
 
 Put essential information in SKILL.md; detailed reference material in separate files that the agent reads only when needed.
 
@@ -192,7 +220,7 @@ Put essential information in SKILL.md; detailed reference material in separate f
 
 **Keep references one level deep** - link directly from SKILL.md to reference files. Deeply nested references may result in partial reads.
 
-### 4. Set Appropriate Degrees of Freedom
+### 6. Set Appropriate Degrees of Freedom
 
 Match specificity to the task's fragility:
 
@@ -407,6 +435,7 @@ If you have access to the AskQuestion tool, use it for efficient structured gath
 2. Write a specific, third-person description
 3. Outline the main sections needed
 4. Identify if supporting files or scripts are needed
+5. If the skill produces explanations/reports/specs: draft **到達点** + **悪い例/良い例** + **図必須** sections before writing the rest
 
 ### Phase 3: Implementation
 
@@ -490,6 +519,8 @@ Before finalizing a skill, verify:
 - [ ] SKILL.md body is under 500 lines
 - [ ] Consistent terminology throughout
 - [ ] Examples are concrete, not abstract
+- [ ] 説明・報告系なら悪い例／良い例で具体性の下限を実文で示している
+- [ ] 流れ・関係・分岐は図必須（文章のみ不可）を明記している
 
 ### Structure
 - [ ] File references are one level deep

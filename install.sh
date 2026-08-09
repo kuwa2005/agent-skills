@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# agent-skills installer (v1.5.0)
+# agent-skills installer (v1.6.0)
 #
 # Prefer GitHub raw for install.sh (jsDelivr @main can lag after pushes)
 #   curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash
@@ -12,6 +12,9 @@
 #   curl -fsSL ... | bash -s -- prevent-secret-leak
 #   curl -fsSL ... | bash -s -- frontend-design
 #   curl -fsSL ... | bash -s -- verify,frontend-design
+#
+# Targets: Cursor, OpenCode, and oimo (Open Mimo Code / OpenMimoCode)
+#   https://github.com/kuwa2005/OpenMimoCode
 set -euo pipefail
 
 REPO="${AGENT_SKILLS_REPO:-kuwa2005/agent-skills}"
@@ -22,6 +25,8 @@ TARBALL_URL="https://codeload.github.com/${REPO}/tar.gz/${REF}"
 
 CURSOR_SKILLS_DIR="${CURSOR_SKILLS_DIR:-$HOME/.cursor/skills}"
 OPENCODE_SKILLS_DIR="${OPENCODE_SKILLS_DIR:-$HOME/.config/opencode/skills}"
+# oimo = Open Mimo Code (OpenCode/Mimo Code 系の独自改造 fork)
+OIMO_SKILLS_DIR="${OIMO_SKILLS_DIR:-$HOME/.config/oimo/skills}"
 
 MUTED='\033[0;2m'
 RED='\033[0;31m'
@@ -30,6 +35,7 @@ NC='\033[0m'
 
 install_cursor=true
 install_opencode=true
+install_oimo=true
 list_only=false
 show_help=false
 force_remote=false
@@ -52,9 +58,13 @@ WORKDIR=""
 
 usage() {
   cat <<EOF
-agent-skills installer v1.5.0
+agent-skills installer v1.6.0
 
-Install Agent Skills for Cursor (~/.cursor/skills) and OpenCode (~/.config/opencode/skills).
+Install Agent Skills for:
+  Cursor   ~/.cursor/skills
+  OpenCode ~/.config/opencode/skills
+  oimo     ~/.config/oimo/skills   (Open Mimo Code / OpenMimoCode)
+
 Copies each skill directory in full (SKILL.md + scripts/ and other assets).
 
 全部一発インストール (default skills only; optional excluded):
@@ -79,6 +89,7 @@ Options:
   --everything         Install default + optional skills
   --cursor-only        Install to Cursor only
   --opencode-only      Install to OpenCode only
+  --oimo-only          Install to oimo (Open Mimo Code) only
   --remote             Force download from GitHub (ignore local checkout)
   --ref <ref>          Git ref (branch/tag/commit). Default: main
                        Implies --remote. Or set AGENT_SKILLS_REF
@@ -88,6 +99,7 @@ Notes:
   - --everything → catalog.txt + optional.txt
   - Optional skills alone still require explicit names (or --everything)
   - Skill names may be space- or comma-separated
+  - oimo: https://github.com/kuwa2005/OpenMimoCode
 EOF
 }
 
@@ -119,8 +131,21 @@ while [[ $# -gt 0 ]]; do
     -l|--list) list_only=true; shift ;;
     -a|--all) install_all=true; shift ;;
     --everything|--with-optional|--full) install_everything=true; shift ;;
-    --cursor-only) install_opencode=false; shift ;;
-    --opencode-only) install_cursor=false; shift ;;
+    --cursor-only)
+      install_opencode=false
+      install_oimo=false
+      shift
+      ;;
+    --opencode-only)
+      install_cursor=false
+      install_oimo=false
+      shift
+      ;;
+    --oimo-only)
+      install_cursor=false
+      install_opencode=false
+      shift
+      ;;
     --remote) force_remote=true; shift ;;
     --ref)
       if [[ -z "${2:-}" ]]; then err "Error: --ref requires an argument"; exit 1; fi
@@ -259,6 +284,11 @@ install_skill() {
     copy_skill_dir "$src" "${OPENCODE_SKILLS_DIR}/${name}"
     ok "  opencode: ${OPENCODE_SKILLS_DIR}/${name}/"
   fi
+
+  if [[ "$install_oimo" == true ]]; then
+    copy_skill_dir "$src" "${OIMO_SKILLS_DIR}/${name}"
+    ok "  oimo:     ${OIMO_SKILLS_DIR}/${name}/"
+  fi
 }
 
 info "agent-skills installer"
@@ -374,5 +404,6 @@ if [[ ${#targets[@]} -gt 0 ]]; then
 fi
 info "Cursor skills dir:   ${CURSOR_SKILLS_DIR}"
 info "OpenCode skills dir: ${OPENCODE_SKILLS_DIR}"
+info "oimo skills dir:     ${OIMO_SKILLS_DIR}"
 info "New agent sessions may be required to pick up skills."
 echo >&2

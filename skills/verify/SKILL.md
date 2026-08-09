@@ -17,6 +17,42 @@ Claiming work is complete without verification is dishonesty, not efficiency.
 
 **Violating the letter of this rule is violating the spirit of this rule.**
 
+### 到達点
+
+検証報告を読んだ人が、**同じコマンドを再実行せずに**「何が通って、何が未確認か」を判断できること。  
+「たぶん直った」「問題なさそう」で止まったら失敗。
+
+### 具体性の下限（悪い例 / 良い例）
+
+悪い例（不十分）:
+> テストもビルドも問題ないと思うので完了です。
+
+良い例（このレベルまで求める）:
+> `npm test` をこのターンで実行。exit 0、34/34 pass（出力末尾: `Tests: 34 passed`）。`npm run build` も exit 0。未実行: e2e / 本番デプロイ。以上より「単体テストとビルドはパス」と報告する。
+
+悪い例（不十分）:
+> CI は緑になるはずです。
+
+良い例（このレベルまで求める）:
+> `gh run view 123456789 --log-failed` で job `lint` が成功、`test` は 2 failing（`auth.spec.ts:42`）。修正後に再実行し run `123456790` が success であることを確認した。
+
+### 図必須（複数検証があるとき）
+
+検証が2ステップ以上、または依存があるときは ASCII / mermaid でゲートを示し、**各ノードにコマンドと結果**を書く。文章の箇条書きだけは不可。
+
+```
+[IDENTIFY] npm test / npm run build
+    │
+    v
+[RUN] npm test     → 34/34 pass, exit 0
+    │
+    v
+[RUN] npm run build → exit 0
+    │
+    v
+[CLAIM] 単体+ビルドはパス（e2e 未実施と明記）
+```
+
 ## The Iron Law
 
 ```

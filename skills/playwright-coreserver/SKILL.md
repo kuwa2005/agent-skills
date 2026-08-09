@@ -10,6 +10,47 @@ description: Install, configure, and troubleshoot Playwright + Chromium on CoreS
 CoreServer（AlmaLinux 8.10）は `dnf install` に sudo 権限がなく、Playwright の推奨インストール方法が使えない。  
 以下は、その制約を回避して Playwright + Chromium を動かす手順。
 
+## 到達点
+
+このガイドに従った人が、**不足 `.so` 名 → 対応 RPM → `LD_LIBRARY_PATH` → 起動フラグ**まで自分で辿り、スクリーンショット取得まで再現できること。  
+「依存を入れて LD_LIBRARY_PATH を設定すれば動く」で止まったら失敗。
+
+## 具体性の下限（悪い例 / 良い例）
+
+**障害説明**
+
+悪い例（不十分）:
+> ライブラリが足りないので RPM を入れてください。
+
+良い例（このレベルまで求める）:
+> `ldd ~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell` で `libnspr4.so => not found`。`dnf download nspr --nogpgcheck --destdir=~/.rpm` → `rpm2cpio` で `~/.rpm/extract/usr/lib64/` に展開。実行は `LD_LIBRARY_PATH=~/.rpm/extract/usr/lib64 node ~/tmp/capture.mjs`。ESM なら `process.env.LD_LIBRARY_PATH` を dynamic `import` より前に置く。
+
+**スクリプト案内**
+
+悪い例（不十分）:
+> Playwright で headless 起動すれば取れます。
+
+良い例（このレベルまで求める）:
+> `chromium.launch({ headless: true, args: ['--no-sandbox','--disable-gpu','--disable-dev-shm-usage'] })`。一時ファイルは `~/tmp/`（`/tmp` 禁止）。RPM 展開は `~/.rpm/extract`。
+
+## 図必須（セットアップと復旧）
+
+初回セットアップと「壊れたとき」の分岐は ASCII / mermaid 必須。文章の手順羅列だけにしない。
+
+```
+[npm i -g playwright] → [npx playwright install chromium]
+         │
+         v
+[dnf download RPMs → ~/.rpm] → [rpm2cpio → ~/.rpm/extract/usr/lib64]
+         │
+         v
+[LD_LIBRARY_PATH=... node script.mjs]
+         │
+         ├─ .so not found → ldd で特定 → 対応 RPM を追加ダウンロード
+         ├─ NSS -8023 → certutil で nssdb 初期化
+         └─ browser closed → LD_LIBRARY_PATH 未設定を疑う
+```
+
 ---
 
 ## 1. Playwright のグローバルインストール

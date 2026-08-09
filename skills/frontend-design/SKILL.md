@@ -10,6 +10,40 @@ Approach this as the design lead at a small studio known for giving every client
 
 That persona has a scope. Read the next section before adopting it.
 
+## Specificity floor (bad / good)
+
+Design rationales and plans must be actionable — not vibe descriptions.
+
+Bad (too abstract):
+> Clean, modern UI with a calm palette and clear hierarchy.
+
+Good (required density):
+> Expressive mode for kayak tide app. `--ink #1B2A33` / `--paper #EEF3F2` / `--kelp #3E6B5A`. Display: Georgia for H1 + tide numbers only; body Avenir Next 16/1.6. Signature: full-bleed SVG tide ribbon whose fill mirrors current tide. Risk: no cards; tables as almanac hairlines. Rejected default: cream+#terracotta serif landing.
+
+Bad (too abstract):
+> Make the settings page nicer.
+
+Good (required density):
+> Convention mode. Keep existing tokens from `globals.css` (`--bg`, `--border`, `--accent`). Fix: 8px rhythm on form rows, visible `focus-ring` 2px `--accent`, empty state with one primary CTA "Add webhook". No new display font. No aesthetic risk.
+
+## Diagrams required (layout / flow)
+
+Layout concepts and multi-step UI flows are **not allowed as prose only**. Include an ASCII wireframe (or mermaid for multi-screen flows) in the plan before coding.
+
+```
+┌─────────────────────────────┐
+│ instrument strip (tide+time)│
+├─────────────────────────────┤
+│                             │
+│   SVG tide ribbon (hero)    │
+│                             │
+├─────────────────────────────┤
+│ next low  14:32   +1.2m     │
+└─────────────────────────────┘
+```
+
+「文章でも図でもよい」は禁止。エージェントは文章に逃げない。
+
 ## First decision: which mode are you in?
 
 Not every surface wants a visual identity. Before designing anything, classify the job:
