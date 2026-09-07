@@ -8,3 +8,4 @@ babysit
 create-skill
 playwright-coreserver
 wsl-windows-gui
+kitesurf

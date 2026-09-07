@@ -17,9 +17,28 @@ Cursor / OpenCode 向け Agent Skills の配布リポジトリです。
 | オプション | `create-skill` | 新しい Agent Skill の作成手順と SKILL.md の書き方 |
 | オプション | `playwright-coreserver` | CoreServer で Playwright + Chromium を動かす手順（sudo 不要） |
 | オプション | `wsl-windows-gui` | WSL から Windows GUI アプリを操作（pywinauto / PowerShell / AutoHotkey） |
+| オプション | `kitesurf` | Cloudflare Kitesurf（Workers 上のステートレス CDP ブラウザ）を chrome-devtools-mcp 経由で使う手順（Chrome 不要） |
+
+### oimo 由来（`optional-oimo.txt`）
+
+[Open Mimo Code](https://github.com/kuwa2005/OpenMimoCode) のビルトインスキル・Compose フェーズ・ワークフローを `bun script/export-agent-skills.ts` で同期した **26 件**（`--everything` には含めない — 明示指定でインストール）:
+
+```bash
+# 一覧
+grep -v '^#' skills/optional-oimo.txt
+
+# 一括（ローカル clone 後）
+./install.sh $(grep -v '^#' skills/optional-oimo.txt)
+
+# 例: 研究系だけ
+./install.sh deep-research super-research arxiv compose-phases oimo-workflows
+```
+
+主なスキル: `compose-next`, `deep-research`, `super-research`, `evolve`, `compose-phases`, `oimo-workflows`, `goal-driven-stop`, Office 系 (`pdf-official` 等), `playwright`, `claude-code`, `codex` など。詳細は OpenMimoCode の [docs/agent-skills-export.md](https://github.com/kuwa2005/OpenMimoCode/blob/main/docs/agent-skills-export.md)。
 
 - **デフォルト**（5 件）: `curl | bash` または `--all` でインストール
-- **オプション**（6 件）: スキル名を指定するか `--everything` でインストール
+- **オプション**（7 件）: スキル名を指定するか `--everything` でインストール
+- **oimo 由来**（26 件）: `optional-oimo.txt` から明示指定
 
 ## 全部一発インストール
 
@@ -37,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 
 ## オプションも含めて全部インストール
 
-デフォルト 5 件 + オプション 6 件、**計 11 件**を一括で入れます:
+デフォルト 5 件 + オプション 7 件、**計 12 件**を一括で入れます:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.sh | bash -s -- --everything
@@ -48,7 +67,7 @@ curl -fsSL https://raw.githubusercontent.com/kuwa2005/agent-skills/main/install.
 | 区分 | スキル |
 |------|--------|
 | デフォルト | `prevent-secret-leak`, `verify`, `xlsm2spec`, `xlsm-prep`, `access2spec` |
-| オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill`, `playwright-coreserver`, `wsl-windows-gui` |
+| オプション | `frontend-design`, `split-to-prs`, `babysit`, `create-skill`, `playwright-coreserver`, `wsl-windows-gui`, `kitesurf` |
 
 インストール完了後、インストールしたスキル名が一覧表示されます。
 
@@ -117,6 +136,7 @@ agent-skills/
 └── skills/
     ├── catalog.txt              # デフォルト（--all）
     ├── optional.txt             # オプション（明示指定 / --everything）
+    ├── optional-oimo.txt        # oimo エクスポート（明示指定のみ）
     ├── prevent-secret-leak/
     ├── verify/
     ├── xlsm2spec/

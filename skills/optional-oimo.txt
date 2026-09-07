@@ -1,0 +1,28 @@
+# Exported from OpenMimoCode (bun script/export-agent-skills.ts)
+# Install: ./install.sh compose-next evolve  OR  ./install.sh $(cat optional-oimo.txt | grep -v '^#')
+compose-next
+deep-research
+super-research
+arxiv
+design-blueprint
+skill-creator
+playwright
+pdf-official
+docx-official
+pptx-official
+xlsx-official
+modern-python-toolchain
+research-paper-writing
+learn-everything
+loop
+data-analytics
+product-design
+html-to-video-pipeline
+grok-build
+claude-code
+codex
+evolve
+memory-search
+compose-phases
+oimo-workflows
+goal-driven-stop
